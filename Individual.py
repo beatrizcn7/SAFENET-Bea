@@ -85,14 +85,14 @@ def baixar_imagem_street_view(url, output_folder, image_name):
 
 
 # URL fornecida
-url = ("https://www.google.com/maps/@38.8836228,-8.1735702,3a,15y,163.81h,86.75t/data=!3m7!1e1!3m5!1sTOTgxUmgMFcDS5Qc2mUTrQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fpanoid%3DTOTgxUmgMFcDS5Qc2mUTrQ%26cb_client%3Dmaps_sv.share%26w%3D900%26h%3D600%26yaw%3D163.80554559961956%26pitch%3D3.252495691902581%26thumbfov%3D90!7i16384!8i8192?coh=205410&entry=ttu")
+url = ("https://www.google.com/maps/@37.5955154,-8.6434048,3a,63.4y,348.24h,89.08t/data=!3m7!1e1!3m5!1sp1616XS6N2M60_9LPzWCKg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fpanoid%3Dp1616XS6N2M60_9LPzWCKg%26cb_client%3Dmaps_sv.share%26w%3D900%26h%3D600%26yaw%3D348.2389554525428%26pitch%3D0.9221248775093329%26thumbfov%3D90!7i16384!8i8192?coh=205410&entry=ttu")
 
 
 
 
 # Pasta de saída e nome da imagem
 output_folder = "Fotos"
-image_name = ("69_1")
+image_name = ("96_3")
 
 # Baixar e salvar a imagem
 baixar_imagem_street_view(url, output_folder, image_name)
