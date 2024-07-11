@@ -1,8 +1,6 @@
 import os
 import pandas as pd
 import json
-import xml.etree.ElementTree as ET
-import shutil
 
 # Caminho para o arquivo Excel
 excel_path = 'Dados.xlsx'
@@ -57,41 +55,32 @@ for bridge_id_int in range(1, 2557):
         'Material': material
     }
 
-    # Caminho para o arquivo JSON na subpasta específica
-    json_filename = f'{bridge_id_str}.json'
-    json_path = os.path.join(diretorio_json, bridge_id_str, json_filename)
+    # Criar diretório para os arquivos JSON da ponte se não existir
+    json_dir = os.path.join(diretorio_json, bridge_id_str)
+    os.makedirs(json_dir, exist_ok=True)
 
-    # Criar diretório para os arquivos JSON se não existir
-    os.makedirs(os.path.dirname(json_path), exist_ok=True)
+    # Caminho para o arquivo JSON base
+    json_base_path = os.path.join(json_dir, f'{bridge_id_str}.json')
 
-    # Escrever as informações da ponte no arquivo JSON (criando apenas uma vez)
-    with open(json_path, 'w', encoding='utf-8') as json_file:
+    # Escrever as informações da ponte no arquivo JSON base
+    with open(json_base_path, 'w', encoding='utf-8') as json_file:
         json.dump(ponte_info, json_file, indent=4, ensure_ascii=False)
 
-    print(f"Arquivo JSON criado para ponte '{bridge_id_str}': '{json_path}'.")
+    print(f"Arquivo JSON base criado para ponte '{bridge_id_str}': '{json_base_path}'.")
 
-    # Caminho para o arquivo XML (nomeado como as fotos) na pasta principal
+    # Caminho para o arquivo JSON (nomeado como as fotos) na pasta JSON
     fotos_ponte = [f for f in os.listdir(pasta_ponte) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.gif'))]
     for foto in fotos_ponte:
-        foto_path = os.path.join(pasta_ponte, foto)
-        xml_filename = os.path.splitext(foto)[0] + '.xml'
-        xml_foto_path = os.path.join(pasta_ponte, xml_filename)
+        foto_nome = os.path.splitext(foto)[0]
+        json_foto_path = os.path.join(json_dir, f'{foto_nome}.json')
 
-        # Criar ou atualizar o arquivo XML com as informações da ponte
-        root = ET.Element('ponte')
-        ET.SubElement(root, 'tipo').text = str(tipo_estrutura)
-        ET.SubElement(root, 'intervalo_anos').text = str(intervalo_anos)
-        ET.SubElement(root, 'material').text = str(material)
+        # Copiar o arquivo JSON base e renomeá-lo para cada foto
+        with open(json_base_path, 'r', encoding='utf-8') as json_file:
+            json_data = json.load(json_file)
 
-        tree = ET.ElementTree(root)
-        tree.write(xml_foto_path)
+        with open(json_foto_path, 'w', encoding='utf-8') as json_file:
+            json.dump(json_data, json_file, indent=4, ensure_ascii=False)
 
-        print(f"Arquivo XML criado/atualizado para foto '{foto}' da ponte '{bridge_id_str}': '{xml_foto_path}'.")
-
-    # Copiar o arquivo JSON para cada foto na subpasta
-    for foto in fotos_ponte:
-        json_foto_path = os.path.join(pasta_ponte, f'{bridge_id_str}.json')
-        shutil.copy(json_path, json_foto_path)
-        print(f"Arquivo JSON copiado para foto '{foto}' da ponte '{bridge_id_str}': '{json_foto_path}'.")
+        print(f"Arquivo JSON copiado e renomeado para foto '{foto}' da ponte '{bridge_id_str}': '{json_foto_path}'.")
 
 print("Processo concluído!")
