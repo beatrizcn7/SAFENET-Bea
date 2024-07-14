@@ -63,14 +63,17 @@ def baixar_imagem(url, output_folder, image_name):
         print(f"Erro durante a requisição HTTP: {e}")
 
 # URL fornecida
-url = ("https://www.google.com/maps/@40.4016477,-7.3965799,3a,49y,137.06h,93.56t/data=!3m8!1e1!3m6!1sAF1QipPz5lW89V1ZaUcztRXMnCv39_nf-BaidedqMISH!2e10!3e11!6shttps:%2F%2Flh5.googleusercontent.com%2Fp%2FAF1QipPz5lW89V1ZaUcztRXMnCv39_nf-BaidedqMISH%3Dw900-h600-k-no-pi-3.556674958697016-ya141.05970453745408-ro0-fo90!7i8192!8i4096?coh=205410&entry=ttu")
+url = ("https://www.google.com/maps/@40.4873193,-7.5991856,3a,90y,201.84h,110.8t/data=!3m7!1e1!3m5!1s_bTaq-06Dzh7-faI4fzQXg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fpanoid%3D_bTaq-06Dzh7-faI4fzQXg%26cb_client%3Dmaps_sv.share%26w%3D900%26h%3D600%26yaw%3D201.83614399567242%26pitch%3D-20.804615842802832%26thumbfov%3D90!7i16384!8i8192?coh=205410&entry=ttu")
+
+
+
 
 
 
 
 # Pasta de saída e nome da imagem
 output_folder = "Fotos"
-image_name = "53_2"
+image_name = "114_30.jpg"
 
 # Baixar a imagem
 baixar_imagem(url, output_folder, image_name)
