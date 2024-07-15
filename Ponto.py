@@ -54,8 +54,7 @@ def baixar_imagem(url, output_folder, image_name):
     except requests.exceptions.RequestException as e:
         print(f"Erro durante a requisição HTTP: {e}")
 
-url = ("https://www.google.com/maps/@40.4873193,-7.5991856,3a,90y,201.84h,110.8t/data=!3m7!1e1!3m5!1s_bTaq-06Dzh7-faI4fzQXg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fpanoid%3D_bTaq-06Dzh7-faI4fzQXg%26cb_client%3Dmaps_sv.share%26w%3D900%26h%3D600%26yaw%3D201.83614399567242%26pitch%3D-20.804615842802832%26thumbfov%3D90!7i16384!8i8192?coh=205410&entry=ttu")
-
+url = ("https://www.google.com/maps/@37.7260284,-8.7689743,3a,31.4y,330.65h,84.77t/data=!3m8!1e1!3m6!1sAF1QipOE7jgGeAGvYC7yIVOI_MLHnrL6Q1jTXn3OCTKL!2e10!3e11!6shttps:%2F%2Flh5.googleusercontent.com%2Fp%2FAF1QipOE7jgGeAGvYC7yIVOI_MLHnrL6Q1jTXn3OCTKL%3Dw900-h600-k-no-pi5.22530739389542-ya330.6451123691633-ro0-fo90!7i5760!8i2880?coh=205410&entry=ttu")
 
 
 
@@ -63,6 +62,6 @@ url = ("https://www.google.com/maps/@40.4873193,-7.5991856,3a,90y,201.84h,110.8t
 
 
 output_folder = "Fotos"
-image_name = "114_30.jpg"
+image_name = "121_2"
 
 baixar_imagem(url, output_folder, image_name)

@@ -74,7 +74,7 @@ def baixar_imagem_street_view(url, output_folder, image_name):
         print(f"Erro ao baixar a imagem. Status code: {response.status_code}")
 
 
-url = ("https://www.google.com/maps/@40.4869209,-7.5988854,3a,75y,45.88h,105.04t/data=!3m7!1e1!3m5!1sqBNH0zGbDWK4-NNvY3SFqQ!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fpanoid%3DqBNH0zGbDWK4-NNvY3SFqQ%26cb_client%3Dmaps_sv.share%26w%3D900%26h%3D600%26yaw%3D45.8833110148118%26pitch%3D-15.036784878669437%26thumbfov%3D90!7i16384!8i8192?coh=205410&entry=ttu")
+url = ("https://www.google.com/maps/@39.2487479,-8.6956534,3a,18.1y,212.82h,86.52t/data=!3m7!1e1!3m5!1sqOtDKaQGwYlJApHNa4AMqw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com%2Fv1%2Fthumbnail%3Fpanoid%3DqOtDKaQGwYlJApHNa4AMqw%26cb_client%3Dmaps_sv.share%26w%3D900%26h%3D600%26yaw%3D212.815006890616%26pitch%3D3.4836732802837957%26thumbfov%3D90!7i16384!8i8192?coh=205410&entry=ttu")
 
 
 
@@ -82,6 +82,6 @@ url = ("https://www.google.com/maps/@40.4869209,-7.5988854,3a,75y,45.88h,105.04t
 
 
 output_folder = "Fotos"
-image_name = ("114_4")
+image_name = ("116_2")
 
 baixar_imagem_street_view(url, output_folder, image_name)
