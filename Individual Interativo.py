@@ -4,7 +4,6 @@ import requests
 import os
 from urllib.parse import unquote
 
-
 def extrair_parametros(url):
     parametros = {}
     url_decoded = unquote(url)
@@ -42,7 +41,7 @@ def extrair_parametros(url):
     return parametros
 
 
-def baixar_imagem_street_view(url, output_folder, image_name):
+def baixar_imagem_street_view(url, output_folder):
     parametros = extrair_parametros(url)
 
     if not parametros:
@@ -64,10 +63,13 @@ def baixar_imagem_street_view(url, output_folder, image_name):
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
 
+        # Encontrar o próximo nome de arquivo disponível
+        arquivos_existentes = os.listdir(output_folder)
+        indices_existentes = [int(f.split('_')[1].split('.')[0]) for f in arquivos_existentes if f.startswith(output_folder.split(os.sep)[-1] + '_')]
+        proximo_indice = max(indices_existentes) + 1 if indices_existentes else 1
+        image_name = f"{output_folder.split(os.sep)[-1]}_{proximo_indice}"
+
         image_path = os.path.join(output_folder, f"{image_name}.jpg")
-        if os.path.exists(image_path):
-            print(f"Erro: Já existe uma imagem com o nome {image_name} na pasta {output_folder}.")
-            return
 
         with open(image_path, 'wb') as f:
             f.write(response.content)
@@ -80,27 +82,12 @@ def baixar_imagem_street_view(url, output_folder, image_name):
 def main():
     while True:
         url = input("URL do Street View: ")
-        image_name = input("Nome que deseja dar para a imagem: ")
         output_folder = "Fotos"
 
-        # Listar as pastas existentes
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
+        escolha = input("\nDigite o número da pasta onde deseja salvar a imagem: ")
+        output_folder = os.path.join(output_folder, escolha)
 
-        pastas_existentes = [f.name for f in os.scandir(output_folder) if f.is_dir()]
-        print("\nPastas existentes:")
-        print(" ".join(pastas_existentes))
-
-        escolha = input("\nEscolha uma pasta pelo número ou digite o nome de uma nova pasta: ")
-
-        if escolha in pastas_existentes:
-            output_folder = os.path.join(output_folder, escolha)
-        else:
-            output_folder = os.path.join(output_folder, escolha)
-            if not os.path.exists(output_folder):
-                os.makedirs(output_folder)
-
-        baixar_imagem_street_view(url, output_folder, image_name)
+        baixar_imagem_street_view(url, output_folder)
 
         continuar = input("\nDeseja adicionar mais fotos? (s/n): ")
         if continuar.lower() != 's':
@@ -109,4 +96,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
