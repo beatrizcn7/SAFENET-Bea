@@ -7,26 +7,22 @@ def extrair_parametros(url):
     url_decoded = unquote(url)
 
     try:
-        # Extrair panoid
         panoid_start = url_decoded.find("panoid=") + len("panoid=")
         panoid_end = url_decoded.find("&", panoid_start)
         parametros['panoid'] = url_decoded[panoid_start:panoid_end]
 
-        # Extrair yaw da URL original
         yaw_start = url_decoded.find("yaw=") + len("yaw=")
         yaw_end = url_decoded.find("&", yaw_start)
         if yaw_end == -1:
             yaw_end = len(url_decoded)
         parametros['yaw'] = url_decoded[yaw_start:yaw_end].split("!")[0]
 
-        # Extrair pitch
         pitch_start = url_decoded.find("pitch=") + len("pitch=")
         pitch_end = url_decoded.find("&", pitch_start)
         if pitch_end == -1:
             pitch_end = len(url_decoded)
         parametros['pitch'] = url_decoded[pitch_start:pitch_end].split("!")[0]
 
-        # Extrair thumbfov (utilizar valor padrão caso não seja encontrado)
         thumbfov_start = url_decoded.find("thumbfov=")
         if thumbfov_start != -1:
             thumbfov_start += len("thumbfov=")
@@ -37,7 +33,6 @@ def extrair_parametros(url):
         else:
             parametros['thumbfov'] = '90'  # Valor padrão se não encontrado
 
-        # Extrair latitude, longitude e outros dados
         position_start = url_decoded.find("@") + 1
         position_end = url_decoded.find("/data")
         position_data = url_decoded[position_start:position_end].split(",")
@@ -54,7 +49,7 @@ def extrair_parametros(url):
     return parametros
 
 
-def baixar_imagem_street_view(url, output_folder):
+def descarregar_imagem_street_view(url, output_folder):
     parametros = extrair_parametros(url)
 
     if not parametros:
@@ -76,7 +71,6 @@ def baixar_imagem_street_view(url, output_folder):
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
 
-        # Encontrar o próximo nome de arquivo disponível
         arquivos_existentes = os.listdir(output_folder)
         indices_existentes = [int(f.split('_')[1].split('.')[0]) for f in arquivos_existentes if f.startswith(output_folder.split(os.sep)[-1] + '_')]
         proximo_indice = max(indices_existentes) + 1 if indices_existentes else 1
@@ -87,22 +81,22 @@ def baixar_imagem_street_view(url, output_folder):
         with open(image_path, 'wb') as f:
             f.write(response.content)
 
-        print(f"Imagem salva em: {image_path}")
+        print(f"Imagem guardada: {image_path}")
     else:
-        print(f"Erro ao baixar a imagem. Status code: {response.status_code}")
+        print(f"Erro ao guardar. Status code: {response.status_code}")
 
 
 def main():
     while True:
-        url = input("URL do Street View: ")
+        url = input("URL: ")
         output_folder = "Fotos"
 
-        escolha = input("\nDigite o número da pasta onde deseja salvar a imagem: ")
+        escolha = input("\nNúmero da pasta: ")
         output_folder = os.path.join(output_folder, escolha)
 
-        baixar_imagem_street_view(url, output_folder)
+        descarregar_imagem_street_view(url, output_folder)
 
-        continuar = input("\nDeseja adicionar mais fotos? (s/n): ")
+        continuar = input("\nMais fotos? (s/n): ")
         if continuar.lower() != 's':
             break
 
