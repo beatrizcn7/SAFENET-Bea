@@ -46,7 +46,7 @@ combinacoes_df = combinacoes_df.drop(columns=['Combinação'])
 combinacoes_df = combinacoes_df[['Tipo de Estrutura', 'Intervalo de Anos', 'Material', 'Quantidade']]
 
 # Exportar para um arquivo Excel
-output_excel_path = 'Combinacoes_Pontes.xlsx'
+output_excel_path = 'Combinações.xlsx'
 combinacoes_df.to_excel(output_excel_path, index=False)
 
 print(f"Arquivo Excel criado: {output_excel_path}")
