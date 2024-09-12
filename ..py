@@ -40,7 +40,7 @@ df_combinacoes_completas_excel = df_combinacoes_completas_excel.add_prefix('Exce
 df_comparacao = pd.concat([df_combinacoes_completas_json, df_combinacoes_completas_excel], axis=1)
 
 # Exportar o DataFrame para um novo arquivo Excel
-output_excel_path = 'Comparacao_Organizada.xlsx'
+output_excel_path = 'Comparação Completas (JSON vs. Excel).xlsx'
 df_comparacao.to_excel(output_excel_path, index=False)
 
 print(f"Arquivo Excel criado: {output_excel_path}")
