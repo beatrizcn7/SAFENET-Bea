@@ -5,7 +5,7 @@ import json
 # Caminho para o ficheiro Excel e diretórios
 excel_path = 'Dados.xlsx'
 diretorio_principal = 'Fotos'
-diretorio_json = 'JSON'
+diretorio_json = 'JSON 2'
 
 # Tenta carregar o Excel
 try:
@@ -40,9 +40,9 @@ for bridge_id_int in range(1, 2557):
         continue
 
     # Informações da ponte
-    tipo_estrutura = linha_ponte['TEC - Tipo de Estrutura']
+    tipo_estrutura = linha_ponte['TEC - Tipo de Estrutura 2']
     intervalo_anos = linha_ponte['Intervalo de Anos']
-    material = linha_ponte['CON - Material 1']
+    material = linha_ponte['CON - Material']
 
     # Lista de fotos na pasta da ponte
     fotos_ponte = [f for f in os.listdir(pasta_ponte) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.gif'))]

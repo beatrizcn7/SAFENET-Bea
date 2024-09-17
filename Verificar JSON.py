@@ -2,7 +2,7 @@ import os
 import json
 
 # Caminho da pasta de ficheiros JSON
-json_root_dir = 'JSON'
+json_root_dir = 'JSON 2'
 
 # Campos obrigatórios
 required_fields = ['Id', 'Tipo de Estrutura', 'Material', 'Intervalo de Anos']

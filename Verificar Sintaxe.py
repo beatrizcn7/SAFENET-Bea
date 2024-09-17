@@ -4,18 +4,9 @@ import json
 # Definir os valores esperados para cada campo, usando aspas consistentes
 valid_id_range = range(1, 2557)
 valid_intervalo_anos = ["Antes de 1960", "1960-1983", "1983-2010", "Depois de 2010"]
-valid_tipo_estrutura = [
-    'Alvenaria Alargada', 'Arco (simples ou múltiplos)', 'Arco Pré-Fabricado',
-    'Estrutura Tubular tipo "ARMCO"', 'Misto de Soluções', 'Outro',
-    'Pórtico', 'Quadro', 'Tabuleiro simples/apoiado', 'Tirantes',
-    'Vãos Multiplos', 'Vigas Gerber'
-]
-valid_material = [
-    "Aço", "Aço (tipo ARMCO)", "Aço aparafusado", "Aço rebitado",
-    "Alvenaria de Pedra", "Alvenaria de Tijolo", "Alvenaria Rebocada",
-    "Betão Armado", "Betão Armado Pré-esforçado", "Ferro",
-    "Misto Aço-Betão", "Outros"
-]
+valid_tipo_estrutura = ["Arco", "Outro", "Pórtico", "Quadro", "Tabuleiro simples/apoiado", "Vãos Multiplos"]
+valid_material = ["Aço", "Alvenaria de Pedra", "Alvenaria de Tijolo", "Betão Armado", "Outros"]
+
 
 
 # Função para normalizar e verificar um arquivo JSON
@@ -55,7 +46,7 @@ def verificar_e_normalizar_json(json_path):
 
 
 # Caminho da pasta de ficheiros JSON
-json_root_dir = 'JSON'
+json_root_dir = 'JSON 2'
 
 # Percorrer todos os arquivos JSON na pasta
 for subdir, _, files in os.walk(json_root_dir):
