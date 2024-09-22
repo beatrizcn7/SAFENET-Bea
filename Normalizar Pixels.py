@@ -15,7 +15,7 @@ def salvar_imagem_normalizada(img, save_path):
     tf.io.write_file(save_path, img_encoded)  # Salva a imagem
 
 # Caminho da pasta original com as fotos redimensionadas
-root_dir = 'Fotos Novas'  # Substituir pelo caminho correto da pasta com as fotos redimensionadas
+root_dir = 'Fotos Redimensionadas'  # Substituir pelo caminho correto da pasta com as fotos redimensionadas
 output_dir = 'Fotos Normalizadas'  # Onde serão salvas as imagens normalizadas
 
 # Cria a pasta de destino se não existir

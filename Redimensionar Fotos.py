@@ -17,7 +17,7 @@ def salvar_imagem(img, save_path):
 
 # Caminho da pasta original com as pastas dos identificadores de ponte
 root_dir = 'Fotos'  # Substituir pelo caminho correto da pasta com as fotos
-output_dir = 'Fotos Novas'  # Onde serão salvas as novas fotos
+output_dir = 'Fotos Redimensionadas'  # Onde serão salvas as novas fotos
 
 # Cria a pasta de destino se não existir
 if not os.path.exists(output_dir):
@@ -33,7 +33,7 @@ for subdir in sorted(os.listdir(root_dir), key=lambda x: int(x) if x.isdigit() e
 
     ponte_id = subdir  # O nome da pasta é o ID da ponte
 
-    # Cria a nova pasta com o identificador da ponte dentro de "Fotos Novas"
+    # Cria a nova pasta com o identificador da ponte dentro de "Fotos Redimensionadas"
     ponte_output_dir = os.path.join(output_dir, ponte_id)
     if not os.path.exists(ponte_output_dir):
         os.makedirs(ponte_output_dir)
