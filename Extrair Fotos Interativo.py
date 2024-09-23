@@ -31,7 +31,7 @@ def extrair_parametros(url):
                 thumbfov_end = len(url_decoded)
             parametros['thumbfov'] = url_decoded[thumbfov_start:thumbfov_end]
         else:
-            parametros['thumbfov'] = '90'  # Valor padrão se não encontrado
+            parametros['thumbfov'] = '90'
 
         position_start = url_decoded.find("@") + 1
         position_end = url_decoded.find("/data")
