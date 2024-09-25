@@ -1,0 +1,59 @@
+2024-09-23 15:13:41.253012: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2024-09-23 15:13:43.678252: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2024-09-23 15:13:49.294552: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+
+
+Epoch 1/10
+    162/Unknown 294s 2s/step - accuracy: 0.5334 - loss: 31.28132024-09-23 15:18:46.057387: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+C:\Users\beatr\anaconda3\Lib\contextlib.py:155: UserWarning: Your input ran out of data; interrupting training. Make sure that your dataset or generator can generate at least `steps_per_epoch * epochs` batches. You may need to use the `.repeat()` function when building your dataset.
+  self.gen.throw(typ, value, traceback)
+2024-09-23 15:19:21.166341: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+162/162 ━━━━━━━━━━━━━━━━━━━━ 329s 2s/step - accuracy: 0.5335 - loss: 31.2853 - val_accuracy: 0.5488 - val_loss: 30.9839
+
+
+Epoch 2/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 0s 2s/step - accuracy: 0.6309 - loss: 20.17662024-09-23 15:24:25.571812: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+162/162 ━━━━━━━━━━━━━━━━━━━━ 304s 2s/step - accuracy: 0.6308 - loss: 20.2133 - val_accuracy: 0.4155 - val_loss: 50.1253
+
+
+Epoch 3/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 310s 2s/step - accuracy: 0.6524 - loss: 20.9539 - val_accuracy: 0.5798 - val_loss: 44.6378
+
+
+Epoch 4/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 0s 2s/step - accuracy: 0.6784 - loss: 21.01332024-09-23 15:34:54.300675: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+162/162 ━━━━━━━━━━━━━━━━━━━━ 319s 2s/step - accuracy: 0.6782 - loss: 21.0625 - val_accuracy: 0.5876 - val_loss: 37.2281
+
+
+Epoch 5/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 324s 2s/step - accuracy: 0.6962 - loss: 17.2217 - val_accuracy: 0.4946 - val_loss: 40.4458
+
+
+Epoch 6/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 309s 2s/step - accuracy: 0.6908 - loss: 19.5214 - val_accuracy: 0.6124 - val_loss: 37.7526
+
+
+Epoch 7/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 353s 2s/step - accuracy: 0.7246 - loss: 18.6786 - val_accuracy: 0.6403 - val_loss: 38.2013
+
+
+Epoch 8/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 0s 2s/step - accuracy: 0.7219 - loss: 17.28032024-09-23 15:56:37.718600: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+162/162 ━━━━━━━━━━━━━━━━━━━━ 317s 2s/step - accuracy: 0.7217 - loss: 17.3163 - val_accuracy: 0.6264 - val_loss: 38.0585
+
+
+Epoch 9/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 316s 2s/step - accuracy: 0.7365 - loss: 16.2480 - val_accuracy: 0.6124 - val_loss: 37.5562
+
+
+Epoch 10/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 321s 2s/step - accuracy: 0.7322 - loss: 16.4155 - val_accuracy: 0.6651 - val_loss: 38.1801
+21/21 ━━━━━━━━━━━━━━━━━━━━ 34s 2s/step - accuracy: 0.6451 - loss: 32.7196
+Test Loss: 36.96764373779297
+Test Accuracy: 0.6383307576179504

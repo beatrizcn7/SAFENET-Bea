@@ -1,27 +1,36 @@
+# Resquests = fazer requisições HTTP em Python
 import requests
+# Os = criação de pastas, neste caso
 import os
+# Unquote = descodificar strings de URLs
 from urllib.parse import unquote
 
 def extrair_parametros(url):
+    # parametros é um dicionário vazio onde vão ficar os valores extraídos do URL
     parametros = {}
+    # unquote descodifica o URL
     url_decoded = unquote(url)
 
     try:
+        # Procurar o início da string "panoid=" no URL, panoid é id panorâmico que identifica a imagem panorâmica específica
+        # Cada imagem no Street View tem um panoid único
         panoid_start = url_decoded.find("panoid=") + len("panoid=")
         panoid_end = url_decoded.find("&", panoid_start)
-        parametros['panoid'] = url_decoded[panoid_start:panoid_end]
+        parametros['panoid'] = url_decoded[panoid_start:panoid_end] # Valor de panoid adicionado no dicionário
 
+        # Procurar o valor de yaw, rotação horizontal da câmara, usa a mesma lógica que a anterior
         yaw_start = url_decoded.find("yaw=") + len("yaw=")
         yaw_end = url_decoded.find("&", yaw_start)
         if yaw_end == -1:
             yaw_end = len(url_decoded)
-        parametros['yaw'] = url_decoded[yaw_start:yaw_end].split("!")[0]
+        parametros['yaw'] = url_decoded[yaw_start:yaw_end].split("!")[0] # Valor de yaw adicionado no dicionário
 
+        # Procurar o valor de pitch, ângulo de inclinação da câmara, usa a mesma lógica que a anterior
         pitch_start = url_decoded.find("pitch=") + len("pitch=")
         pitch_end = url_decoded.find("&", pitch_start)
         if pitch_end == -1:
             pitch_end = len(url_decoded)
-        parametros['pitch'] = url_decoded[pitch_start:pitch_end].split("!")[0]
+        parametros['pitch'] = url_decoded[pitch_start:pitch_end].split("!")[0] # Valor de pitch adicionado no dicionário
 
         thumbfov_start = url_decoded.find("thumbfov=")
         if thumbfov_start != -1:
@@ -53,7 +62,7 @@ def descarregar_imagem_street_view(url, output_folder):
     parametros = extrair_parametros(url)
 
     if not parametros:
-        print("Não foi possível extrair os parâmetros da URL.")
+        print("Não foi possível extrair os parâmetros do URL.")
         return
 
     print("Parâmetros extraídos:", parametros)

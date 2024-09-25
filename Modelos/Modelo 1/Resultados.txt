@@ -1,0 +1,51 @@
+Epoch 1/10
+    162/Unknown 315s 2s/step - accuracy: 0.5968 - loss: 28.11132024-09-23 11:59:53.781388: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+C:\Users\beatr\anaconda3\Lib\contextlib.py:155: UserWarning: Your input ran out of data; interrupting training. Make sure that your dataset or generator can generate at least `steps_per_epoch * epochs` batches. You may need to use the `.repeat()` function when building your dataset.
+  self.gen.throw(typ, value, traceback)
+2024-09-23 12:00:37.174119: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+162/162 ━━━━━━━━━━━━━━━━━━━━ 358s 2s/step - accuracy: 0.5968 - loss: 28.1420 - val_accuracy: 0.6589 - val_loss: 34.2765
+
+
+Epoch 2/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 0s 2s/step - accuracy: 0.7721 - loss: 11.15152024-09-23 12:06:04.872252: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+162/162 ━━━━━━━━━━━━━━━━━━━━ 327s 2s/step - accuracy: 0.7719 - loss: 11.1906 - val_accuracy: 0.7364 - val_loss: 40.5254
+
+
+Epoch 3/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 323s 2s/step - accuracy: 0.8594 - loss: 6.1498 - val_accuracy: 0.7178 - val_loss: 46.6064
+
+
+Epoch 4/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 0s 2s/step - accuracy: 0.8715 - loss: 5.84842024-09-23 12:16:50.604909: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+162/162 ━━━━━━━━━━━━━━━━━━━━ 323s 2s/step - accuracy: 0.8713 - loss: 5.8672 - val_accuracy: 0.7426 - val_loss: 36.4586
+
+
+Epoch 5/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 328s 2s/step - accuracy: 0.9071 - loss: 3.4144 - val_accuracy: 0.7767 - val_loss: 32.6847
+
+
+Epoch 6/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 321s 2s/step - accuracy: 0.9177 - loss: 3.5521 - val_accuracy: 0.7132 - val_loss: 27.7604
+
+
+Epoch 7/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 329s 2s/step - accuracy: 0.9711 - loss: 0.7307 - val_accuracy: 0.7473 - val_loss: 24.8425
+
+
+Epoch 8/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 0s 2s/step - accuracy: 0.9811 - loss: 0.34132024-09-23 12:38:29.778729: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+162/162 ━━━━━━━━━━━━━━━━━━━━ 321s 2s/step - accuracy: 0.9811 - loss: 0.3413 - val_accuracy: 0.7659 - val_loss: 23.3883
+
+
+Epoch 9/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 326s 2s/step - accuracy: 0.9921 - loss: 0.1658 - val_accuracy: 0.7473 - val_loss: 21.3046
+
+
+Epoch 10/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 318s 2s/step - accuracy: 0.9872 - loss: 0.2872 - val_accuracy: 0.7674 - val_loss: 24.4538
+
