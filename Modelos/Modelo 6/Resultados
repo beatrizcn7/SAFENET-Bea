@@ -1,0 +1,44 @@
+C:\Users\beatr\anaconda3\python.exe C:\Users\beatr\Documents\GitHub\SAFENET-Bea\Modelo.py
+2024-09-26 12:34:02.030761: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2024-09-26 12:34:04.634755: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2024-09-26 12:34:11.051343: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Epoch 1/10
+    162/Unknown 460s 3s/step - accuracy: 0.1101 - loss: 472.65082024-09-26 12:41:56.160854: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+C:\Users\beatr\anaconda3\Lib\contextlib.py:155: UserWarning: Your input ran out of data; interrupting training. Make sure that your dataset or generator can generate at least `steps_per_epoch * epochs` batches. You may need to use the `.repeat()` function when building your dataset.
+  self.gen.throw(typ, value, traceback)
+2024-09-26 12:42:34.636372: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+162/162 ━━━━━━━━━━━━━━━━━━━━ 507s 3s/step - accuracy: 0.1098 - loss: 471.7237 - val_accuracy: 0.1302 - val_loss: 3.1035
+Epoch 2/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 0s 3s/step - accuracy: 0.0472 - loss: 101.06402024-09-26 12:50:08.898945: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+C:\Users\beatr\anaconda3\Lib\contextlib.py:155: UserWarning: Your input ran out of data; interrupting training. Make sure that your dataset or generator can generate at least `steps_per_epoch * epochs` batches. You may need to use the `.repeat()` function when building your dataset.
+  self.gen.throw(typ, value, traceback)
+162/162 ━━━━━━━━━━━━━━━━━━━━ 485s 3s/step - accuracy: 0.0472 - loss: 101.1320 - val_accuracy: 0.0124 - val_loss: 3.3973
+Epoch 3/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 0s 3s/step - accuracy: 0.0212 - loss: 95.08242024-09-26 12:58:43.620561: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+162/162 ━━━━━━━━━━━━━━━━━━━━ 478s 3s/step - accuracy: 0.0212 - loss: 95.1681 - val_accuracy: 0.0233 - val_loss: 3.7363
+Epoch 4/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 484s 3s/step - accuracy: 0.0178 - loss: 99.4315 - val_accuracy: 0.0155 - val_loss: 3.7933
+Epoch 1/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 652s 4s/step - accuracy: 0.3032 - loss: 113.8356 - val_accuracy: 0.3287 - val_loss: 2.9299
+Epoch 2/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 0s 4s/step - accuracy: 0.3193 - loss: 94.93992024-09-26 13:28:00.130266: I tensorflow/core/framework/local_rendezvous.cc:404] Local rendezvous is aborting with status: OUT_OF_RANGE: End of sequence
+	 [[{{node IteratorGetNext}}]]
+162/162 ━━━━━━━━━━━━━━━━━━━━ 648s 4s/step - accuracy: 0.3193 - loss: 95.0482 - val_accuracy: 0.4946 - val_loss: 2.8006
+Epoch 3/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 575s 4s/step - accuracy: 0.3026 - loss: 86.8018 - val_accuracy: 0.5395 - val_loss: 2.7277
+Epoch 4/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 554s 3s/step - accuracy: 0.2856 - loss: 85.9086 - val_accuracy: 0.4884 - val_loss: 2.7796
+Epoch 5/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 562s 3s/step - accuracy: 0.2380 - loss: 94.8635 - val_accuracy: 0.4388 - val_loss: 2.9233
+Epoch 6/10
+162/162 ━━━━━━━━━━━━━━━━━━━━ 545s 3s/step - accuracy: 0.2039 - loss: 87.3037 - val_accuracy: 0.4434 - val_loss: 2.8024
+21/21 ━━━━━━━━━━━━━━━━━━━━ 30s 1s/step - accuracy: 0.5095 - loss: 2.7215
+Test Loss: 2.7341251373291016
+Test Accuracy: 0.5069552063941956
+
+Process finished with exit code 0

@@ -3,10 +3,10 @@ import random
 import shutil
 
 # Diretório que contém os arquivos TFRecord
-tfrecord_dir = 'Pasta Final TFRecord'
-output_train_dir = 'Pasta Final TFRecord/Treino'
-output_val_dir = 'Pasta Final TFRecord/Validação'
-output_test_dir = 'Pasta Final TFRecord/Teste'
+tfrecord_dir = 'Pasta Final TFRecord 1'
+output_train_dir = 'Pasta Final TFRecord 1/Treino'
+output_val_dir = 'Pasta Final TFRecord 1/Validação'
+output_test_dir = 'Pasta Final TFRecord 1/Teste'
 
 # Criar pastas para treino, validação e teste se não existirem
 os.makedirs(output_train_dir, exist_ok=True)
@@ -42,7 +42,7 @@ def move_files(file_list, output_dir):
         dst_path = os.path.join(output_dir, file)
         shutil.move(src_path, dst_path)
 
-# Mover arquivos para as pastas de treinamento, validação e teste
+# Mover arquivos para as pastas de treino, validação e teste
 move_files(train_files, output_train_dir)
 move_files(val_files, output_val_dir)
 move_files(test_files, output_test_dir)

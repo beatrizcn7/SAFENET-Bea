@@ -1,6 +1,8 @@
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from tensorflow.keras.applications import ResNet50
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Carregar o modelo ResNet50 com pesos pré-treinados do ImageNet
 base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
@@ -18,7 +20,6 @@ data_augmentation = models.Sequential([
     layers.RandomTranslation(0.2, 0.2),
 ], name="data_augmentation")
 
-
 # Função para carregar TFRecords
 def parse_tfrecord(example_proto):
     # Definir o formato do TFRecord
@@ -31,7 +32,6 @@ def parse_tfrecord(example_proto):
     image = tf.image.resize(image, [224, 224])
     return image, parsed_example['image/object/class/label']
 
-
 def load_dataset(file_paths, augment=False):
     dataset = tf.data.TFRecordDataset(file_paths)
     dataset = dataset.map(parse_tfrecord)
@@ -40,7 +40,6 @@ def load_dataset(file_paths, augment=False):
         dataset = dataset.map(lambda x, y: (data_augmentation(x, training=True), y))
 
     return dataset
-
 
 # Diretórios dos TFRecords
 train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Treino/*.tfrecord')
@@ -67,58 +66,39 @@ model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
 
 # Definir os pesos de classe ajustados
 class_weights = {
-    0: 33.5,
-    1: 312.2,
-    2: 208.2,
-    3: 223.0,
-    4: 184.2,
-    5: 6244.0,
-    6: 28.9,
-    7: 447.4,
-    8: 6244.0,
-    9: 390.3,
-    10: 624.4,
-    11: 195.3,
-    12: 60.0,
-    13: 312.2,
-    14: 240.2,
-    15: 1041.3,
-    16: 6244.0,
-    17: 624.4,
-    18: 6244.0,
-    20: 3.96,
-    21: 32.4,
-    22: 390.3,
-    23: 780.5,
-    24: 65.0,
-    25: 72.7,
-    26: 71.0,
-    27: 14.4,
-    28: 284.7,
-    29: 1041.3,
-    30: 284.7,
-    31: 520.4,
-    32: 94.7,
-    33: 1.0,
-    34: 15.7,
-    35: 120.3,
-    36: 31.0,
-    38: 208.2,
-    39: 780.5,
-    40: 780.5,
-    41: 1561.0,
+    0: 33.5, 1: 312.2, 2: 208.2, 3: 223.0, 4: 184.2,
+    5: 6244.0, 6: 28.9, 7: 447.4, 8: 6244.0, 9: 390.3,
+    10: 624.4, 11: 195.3, 12: 60.0, 13: 312.2, 14: 240.2,
+    15: 1041.3, 16: 6244.0, 17: 624.4, 18: 6244.0, 20: 3.96,
+    21: 32.4, 22: 390.3, 23: 780.5, 24: 65.0, 25: 72.7,
+    26: 71.0, 27: 14.4, 28: 284.7, 29: 1041.3, 30: 284.7,
+    31: 520.4, 32: 94.7, 33: 1.0, 34: 15.7, 35: 120.3,
+    36: 31.0, 38: 208.2, 39: 780.5, 40: 780.5, 41: 1561.0,
     42: 6244.0
 }
 
 # Treinar o modelo (primeira fase)
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
+# Callback para exibir imagens e rótulos durante o treinamento
+class DisplayImagesCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        # Pegue um lote de imagens e rótulos do conjunto de validação
+        for images, labels in val_dataset.take(1):
+            plt.figure(figsize=(10, 10))
+            for i in range(9):
+                ax = plt.subplot(3, 3, i + 1)
+                plt.imshow(images[i] / 255.0)  # Normalizar para [0, 1]
+                plt.title(f'Label: {labels[i].numpy()}')
+                plt.axis('off')
+            plt.show()
+
 history = model.fit(
     train_dataset,
     validation_data=val_dataset,
     epochs=10,
     class_weight=class_weights,
-    callbacks=[early_stopping]
+    callbacks=[early_stopping, DisplayImagesCallback()]
 )
 
 # Descongelar as últimas camadas da ResNet
@@ -136,7 +116,7 @@ fine_tune_history = model.fit(
     validation_data=val_dataset,
     epochs=10,
     class_weight=class_weights,
-    callbacks=[early_stopping]
+    callbacks=[early_stopping, DisplayImagesCallback()]
 )
 
 # Avaliar o modelo no conjunto de teste

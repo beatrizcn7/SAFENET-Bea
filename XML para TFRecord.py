@@ -116,7 +116,7 @@ def organize_images_and_tf_records(input_dir, output_dir, comb_excel):
 
 # Defina os diretórios e o caminho do Excel
 input_dir = 'Pasta Final'
-output_dir = 'Pasta Final TFRecord'
+output_dir = ('Pasta Final TFRecord 1')
 comb_excel = 'Combinações/Combinações JSON 2.xlsx'
 
 # Execute a função
