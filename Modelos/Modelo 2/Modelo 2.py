@@ -11,17 +11,17 @@ base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 2
 for layer in base_model.layers:
     layer.trainable = False
 
-# COMENTARIO
+# Aumentar os dados de treino com rotações, refleção, zoom aleatoriamente
 data_augmentation = models.Sequential([
-    layers.RandomFlip("horizontal_and_vertical"),
-    layers.RandomRotation(0.2),
-    layers.RandomZoom(0.1),
+    layers.RandomFlip("horizontal_and_vertical"), # verticalmente ou horizontalmente
+    layers.RandomRotation(0.2), # até 20%
+    layers.RandomZoom(0.1), # até 10%
 ], name="data_augmentation")
 
 # Criar um novo modelo
 model = models.Sequential([
     layers.Input(shape=(224, 224, 3)),  # Definir a forma de entrada
-    data_augmentation,  # Adicione a camada de aumento de dados
+    data_augmentation,  # Adiciona a camada de aumento de dados
     base_model,
     layers.Flatten(),
     layers.Dense(43, activation='softmax')  # As labels vão da 0 à 42 (43 combinações possíveis)
