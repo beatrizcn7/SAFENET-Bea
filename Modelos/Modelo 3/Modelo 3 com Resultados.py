@@ -16,23 +16,23 @@ base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 2
 for layer in base_model.layers:
     layer.trainable = False
 
-# Aumentar os dados de treino com rotações, refleção, zoom aleatoriamente + COMENTÁRIO
+# Aumentar os dados de treino com rotações, refleção, zoom, contraste e brilho aleatoriamente
 data_augmentation = models.Sequential([
     layers.RandomFlip("horizontal_and_vertical"), # verticalmente ou horizontalmente
     layers.RandomRotation(0.2), # até 20%
-    layers.RandomZoom(0.2), # até 10%
-    layers.RandomContrast(0.2),
-    layers.RandomBrightness(0.2),
+    layers.RandomZoom(0.2), # até 20%
+    layers.RandomContrast(0.2), # até 20%
+    layers.RandomBrightness(0.2), # até 20%
 ], name="data_augmentation")
 
-# Criar um novo modelo + COMENTÁRIO
+# Criar um novo modelo
 model = models.Sequential([
     layers.Input(shape=(224, 224, 3)), # Definir a forma de entrada
     data_augmentation,  # Adicionar a camada de aumento de dados
     base_model,
     layers.Flatten(),
-    layers.Dense(1024, activation='relu'),
-    layers.Dropout(0.5),
+    layers.Dense(1024, activation='relu'), # Camada conectada com 1024 neurónios e a função ativação relu
+    layers.Dropout(0.5), # dropout com uma taxa de 50%
     layers.Dense(43, activation='softmax')  # As labels vão da 0 à 42 (43 combinações possíveis)
 ])
 
@@ -63,7 +63,7 @@ def load_dataset(file_paths):
         )
     )
 
-# Pastas dos ficheiros TFRecords (Treino e Teste)
+# Pastas dos ficheiros TFRecords (Treino e Validação)
 train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Treino/*.tfrecord')
 val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Validação/*.tfrecord')
 
@@ -71,7 +71,7 @@ val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Validação/*.tfrecord')
 train_dataset = load_dataset(train_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 val_dataset = load_dataset(val_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 
-# COMENTÁRIO
+# Interrompe o treino do modelo de forma antecipada se o desempenho no conjunto de validação não melhorar
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
 # COMENTÁRIO
@@ -83,12 +83,12 @@ history_metrics = {
     "val_accuracy": []
 }
 
-# Treinar o modelo + COMENTÁRIO
+# Treinar o modelo
 history = model.fit(
     train_dataset,
     validation_data=val_dataset,
     epochs=10,
-    callbacks=[early_stopping]
+    callbacks=[early_stopping] # Pode parar o treino se o desempenho nos dados de validação não melhorar
 )
 
 # COMENTÁRIO
@@ -99,16 +99,16 @@ for epoch in range(len(history.history['loss'])):
     history_metrics['val_loss'].append(history.history['val_loss'][epoch])
     history_metrics['val_accuracy'].append(history.history['val_accuracy'][epoch])
 
-# COMENTÁRIO
-for layer in base_model.layers[-30:]:  # Ajuste o número de camadas conforme necessário
+# Ativa o treino das últimas 30 camadas
+for layer in base_model.layers[-30:]:
     layer.trainable = True
 
-# COMENTÁRIO
+# Compilar o modelo usando o otimizador Adam com uma taxa de aprendizagem
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-# COMENTÁRIO
+# Inicia o treino do modelo por 10 épocas e implementa um callback
 fine_tune_history = model.fit(
     train_dataset,
     validation_data=val_dataset,
@@ -136,20 +136,27 @@ print(f'Teste Loss: {test_loss}')
 print(f'Teste Accuracy: {test_accuracy}')
 
 # ------------- Representação de dados ----------
-# COMENTÁRIO
+# Guardar o dataframe de resultados num arquivo Excel
 df_metrics = pd.DataFrame(history_metrics)
-
-# COMENTÁRIO
 df_metrics.to_excel('Resultados.xlsx', index=False)
 
 print('Excel criado')
 
 plt.figure(figsize=(12, 5))
 
+# Identificar a melhor epoch em Accuracy
+best_val_accuracy = max(history_metrics['val_accuracy'])
+best_epoch_accuracy = history_metrics['epoch'][history_metrics['val_accuracy'].index(best_val_accuracy)]
+
+# Identificar a melhor epoch em Loss
+best_val_loss = min(history_metrics['val_loss'])
+best_epoch_loss = history_metrics['epoch'][history_metrics['val_loss'].index(best_val_loss)]
+
 # Gráfico 1: Accuracy ao longo das épocas
 plt.subplot(1, 2, 2)
 plt.plot(history_metrics['epoch'], history_metrics['accuracy'], label='Accuracy de Treino')
 plt.plot(history_metrics['epoch'], history_metrics['val_accuracy'], label='Accuracy de Validação')
+plt.axvline(x=best_epoch_accuracy, color='r', linestyle='--', label=f'Melhor Epoch {best_epoch_accuracy}')
 plt.title('Accuracy ao longo dos Epochs')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
@@ -159,37 +166,39 @@ plt.legend()
 plt.subplot(1, 2, 1)
 plt.plot(history_metrics['epoch'], history_metrics['loss'], label='Loss de Treino')
 plt.plot(history_metrics['epoch'], history_metrics['val_loss'], label='Loss de Validação')
+plt.axvline(x=best_epoch_loss, color='r', linestyle='--', label=f'Melhor Epoch {best_epoch_loss}')
 plt.title('Loss ao longo dos Epochs')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
+
 
 # Ajustar layout e mostrar os gráficos
 plt.tight_layout()
 plt.savefig('Loss e Accuracy.png')  # Guardar os gráficos numa imagem
 plt.show()
 
-print("Gráficos de Loss e Accuracy salvos.")
+print('Gráficos de Accuracy e Loss criados')
 
 y_true = [] # armazena as labels verdadeiras de cada batch dos dados teste
 y_pred = [] # armazena as previsões feitas pelo modelo
 
 # Recolher as labels verdadeiras e as previsões
 for images, labels in test_dataset:
-    predictions = model.predict(images)
+    preds = model.predict(images)
     y_true.extend(labels.numpy())
-    y_pred.extend(tf.argmax(predictions, axis=1).numpy())
+    y_pred.extend(np.argmax(preds, axis=1))
 
 # Calcular a matriz de confusão
 cm = confusion_matrix(y_true, y_pred, labels=range(43))
 
-# Fazer o gráfico da matriz de confusão
+# Gráfico da matriz de confusão
 plt.figure(figsize=(12, 10))
 sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=range(43), yticklabels=range(43))
 plt.title('Confusion Matrix')
 plt.xlabel('Previsto Label')
 plt.ylabel('Verdadeiro Label')
-plt.savefig('Matriz de Confusão.png')  # Guardar a matriz de confusão como imagem
+plt.savefig('Matriz de Confusão.png')
 plt.show()
 
 print('Matriz de confusão criada')
@@ -220,7 +229,7 @@ for i in range(len(cm)):
     f1 = 2 * ((precision * recall) / (precision + recall)) if (precision + recall) > 0 else 0
     f1_scores.append(f1)
 
-# Criar um DataFrame para as métricas
+# Criar DataFrame com as métricas
 df_metrics_final = pd.DataFrame({
     'Label': range(43),
     'Accuracy': accuracies,
@@ -229,7 +238,7 @@ df_metrics_final = pd.DataFrame({
     'F1 Score': f1_scores
 })
 
-# Salvar o dataframe das métricas num arquivo Excel
+# Salvar métricas em Excel
 df_metrics_final.to_excel("Métricas.xlsx", index=False)
 
 print('Métricas calculadas')
@@ -240,14 +249,13 @@ file_names = ['Accuracy.png', 'Precision.png', 'Recall.png', 'F1 Score.png']
 
 for metric, file_name in zip(metrics, file_names):
     plt.figure(figsize=(8, 5))
-    plt.plot(metrics_df['Label'], metrics_df[metric], marker='o')
+    plt.plot(df_metrics_final['Label'], df_metrics_final[metric], marker='o')
     plt.title(f'{metric} por Label')
     plt.xlabel('Label')
     plt.ylabel(metric)
-    plt.xticks(metrics_df['Label'])  # Mostrar todas as labels no eixo x
+    plt.xticks(df_metrics_final['Label'])  # Mostrar todas as labels no eixo x
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(file_name)  # Guardar gráfico como imagem
+    plt.savefig(file_name) # Guardar gráfico como imagem
     plt.show()
-
-print('Gráficos individuais criados.')
+    print(f'Gráfico {metric} salvo como {file_name}')

@@ -11,23 +11,23 @@ base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 2
 for layer in base_model.layers:
     layer.trainable = False
 
-# Aumentar os dados de treino com rotações, refleção, zoom aleatoriamente + COMENTÁRIO
+# Aumentar os dados de treino com rotações, refleção, zoom, contraste e brilho aleatoriamente
 data_augmentation = models.Sequential([
     layers.RandomFlip("horizontal_and_vertical"), # verticalmente ou horizontalmente
     layers.RandomRotation(0.2), # até 20%
-    layers.RandomZoom(0.2), # até 10%
-    layers.RandomContrast(0.2),
-    layers.RandomBrightness(0.2),
+    layers.RandomZoom(0.2), # até 20%
+    layers.RandomContrast(0.2), # até 20%
+    layers.RandomBrightness(0.2), # até 20%
 ], name="data_augmentation")
 
-# Criar um novo modelo + COMENTÁRIO
+# Criar um novo modelo
 model = models.Sequential([
     layers.Input(shape=(224, 224, 3)), # Definir a forma de entrada
     data_augmentation,  # Adicionar a camada de aumento de dados
     base_model,
     layers.Flatten(),
-    layers.Dense(1024, activation='relu'),
-    layers.Dropout(0.5),
+    layers.Dense(1024, activation='relu'), # Camada conectada com 1024 neurónios e a função ativação relu
+    layers.Dropout(0.5), # dropout com uma taxa de 50%
     layers.Dense(43, activation='softmax')  # As labels vão da 0 à 42 (43 combinações possíveis)
 ])
 
@@ -58,7 +58,7 @@ def load_dataset(file_paths):
         )
     )
 
-# Pastas dos ficheiros TFRecords (Treino e Teste)
+# Pastas dos ficheiros TFRecords (Treino e Validação)
 train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Treino/*.tfrecord')
 val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Validação/*.tfrecord')
 
@@ -66,27 +66,27 @@ val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Validação/*.tfrecord')
 train_dataset = load_dataset(train_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 val_dataset = load_dataset(val_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 
-# COMENTÁRIO
+# Interrompe o treino do modelo de forma antecipada se o desempenho no conjunto de validação não melhorar
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
-# Treinar o modelo + COMENTÁRIO
+# Treinar o modelo
 history = model.fit(
     train_dataset,
     validation_data=val_dataset,
     epochs=10,
-    callbacks=[early_stopping]
+    callbacks=[early_stopping] # Pode parar o treino se o desempenho nos dados de validação não melhorar
 )
 
-# COMENTÁRIO
-for layer in base_model.layers[-30:]:  # Ajuste o número de camadas conforme necessário
+# Ativa o treino das últimas 30 camadas
+for layer in base_model.layers[-30:]:
     layer.trainable = True
 
-# COMENTÁRIO
+# Compilar o modelo usando o otimizador Adam com uma taxa de aprendizagem
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-# COMENTÁRIO
+# Inicia o treino do modelo por 10 épocas e implementa um callback
 fine_tune_history = model.fit(
     train_dataset,
     validation_data=val_dataset,

@@ -175,7 +175,7 @@ best_epoch_loss = epochs[history.history['val_loss'].index(min(history.history['
 plt.figure(figsize=(12, 5))
 
 # Gráfico 1: Accuracy ao longo das épocas
-plt.subplot(1, 2, 1)
+plt.subplot(1, 2, 2)
 plt.plot(epochs, history.history['accuracy'], label='Accuracy de Treino', marker='o')
 plt.plot(epochs, history.history['val_accuracy'], label='Accuracy de Validação', marker='o')
 plt.axvline(x=best_epoch_acc, color='r', linestyle='--', label=f'Melhor Epoch {best_epoch_acc}')
@@ -185,7 +185,7 @@ plt.ylabel('Accuracy')
 plt.legend()
 
 # Gráfico 2: Loss ao longo das épocas
-plt.subplot(1, 2, 2)
+plt.subplot(1, 2, 1)
 plt.plot(epochs, history.history['loss'], label='Loss de Treino', marker='o')
 plt.plot(epochs, history.history['val_loss'], label='Loss de Validação', marker='o')
 plt.axvline(x=best_epoch_loss, color='r', linestyle='--', label=f'Melhor Epoch {best_epoch_loss}')
