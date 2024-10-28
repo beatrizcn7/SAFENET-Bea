@@ -113,7 +113,7 @@ def descarregar_imagem_street_view(url, output_folder):
 def main():
     while True:
         url = input("URL: ")
-        output_folder = "Fotos"
+        output_folder = "Fotos Novas"
 
         escolha = input("\nNúmero da pasta: ")
         output_folder = os.path.join(output_folder, escolha)

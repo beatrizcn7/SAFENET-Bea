@@ -2,6 +2,7 @@
 import tensorflow as tf # Principal biblioteca de Machine Learnig e Deep Learning. Cria, treina e implementa modelos de resdes neurais.
 from tensorflow.keras import layers, models # API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
 from tensorflow.keras.applications import ResNet50 # Modelo pré-treinado utilizado
+import time  # Biblioteca para contar o tempo
 
 # --------------------- Modelo ------------------
 # Cria uma instância do modelo ResNet50 com pesos pré-treinados do ImageNet
@@ -62,6 +63,9 @@ val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Validação/*.tfrecord')
 train_dataset = load_dataset(train_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 val_dataset = load_dataset(val_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 
+# Início da contagem de tempo
+start_time = time.time()
+
 # Treinar o modelo
 history = model.fit(
     train_dataset,
@@ -75,6 +79,11 @@ test_dataset = load_dataset(test_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 
 # Avaliar o modelo no conjunto de teste
 test_loss, test_accuracy = model.evaluate(test_dataset)
+
+end_time = time.time()  # Fim
+total_time = (end_time - start_time) / 60  # Converter para minutos
+# Imprimir o tempo total
+print(f"Tempo total: {total_time:.2f} minutos")
 
 # Imprime os resultados da perda e da exatidão dos dados teste
 print(f'Teste Loss: {test_loss}')

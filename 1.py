@@ -1,7 +1,9 @@
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from tensorflow.keras.applications import ResNet50
-import pandas as pd  # Importar a biblioteca pandas
+import numpy as np
+import pandas as pd  # Para salvar os resultados em Excel
+import time  # Biblioteca para contar o tempo
 
 # Carregar o modelo ResNet50 com pesos pré-treinados do ImageNet
 base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
@@ -10,24 +12,24 @@ base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 2
 for layer in base_model.layers:
     layer.trainable = False
 
-# Criar uma camada de aumento de dados
+# Camada de aumento de dados
 data_augmentation = models.Sequential([
     layers.RandomFlip("horizontal_and_vertical"),
-    layers.RandomRotation(0.3),  # Aumentar a rotação
-    layers.RandomZoom(0.3),  # Aumentar o zoom
-    layers.RandomContrast(0.3),  # Aumentar o contraste
-    layers.RandomTranslation(0.2, 0.2),  # Adicionar translação
+    layers.RandomRotation(0.3),
+    layers.RandomZoom(0.3),
+    layers.RandomContrast(0.3),
+    layers.RandomTranslation(0.2, 0.2),
 ], name="data_augmentation")
 
-# Criar um novo modelo com camadas adicionais
+# Construir o modelo completo
 model = models.Sequential([
     layers.Input(shape=(224, 224, 3)),
-    data_augmentation,  # Adicionar a camada de aumento de dados
+    data_augmentation,
     base_model,
     layers.Flatten(),
-    layers.Dense(1024, activation='relu'),  # Camada densa intermediária
-    layers.Dropout(0.5),  # Regularização para evitar overfitting
-    layers.Dense(43, activation='softmax')  # 43 combinações possíveis (labels de 0 a 42)
+    layers.Dense(1024, activation='relu'),
+    layers.Dropout(0.5),
+    layers.Dense(43, activation='softmax')  # 43 classes
 ])
 
 # Compilar o modelo (primeira fase)
@@ -37,7 +39,6 @@ model.compile(optimizer='adam',
 
 # Função para carregar TFRecords
 def parse_tfrecord(example_proto):
-    # Definir o formato do TFRecord
     feature_description = {
         'image/encoded': tf.io.FixedLenFeature([], tf.string),
         'image/object/class/label': tf.io.FixedLenFeature([], tf.int64),
@@ -45,7 +46,6 @@ def parse_tfrecord(example_proto):
     return tf.io.parse_single_example(example_proto, feature_description)
 
 def load_dataset(file_paths):
-    # Criar um dataset a partir de múltiplos arquivos TFRecord
     raw_dataset = tf.data.TFRecordDataset(file_paths)
     return raw_dataset.map(parse_tfrecord).map(
         lambda x: (
@@ -53,6 +53,28 @@ def load_dataset(file_paths):
             x['image/object/class/label']
         )
     )
+
+# Contar os exemplos por classe e garantir que todas as classes estejam representadas
+def compute_class_weights(dataset, num_classes=43):
+    class_counts = {}
+    total_count = 0
+
+    for _, label in dataset:
+        label = int(label.numpy())  # Converter o rótulo para um inteiro
+        class_counts[label] = class_counts.get(label, 0) + 1
+        total_count += 1
+
+    class_weights = {
+        label: total_count / (count * num_classes) if count > 0 else 0
+        for label, count in class_counts.items()
+    }
+
+    # Garantir que todas as classes estejam representadas de 0 até num_classes - 1
+    for label in range(num_classes):
+        if label not in class_weights:
+            class_weights[label] = 0
+
+    return class_weights
 
 # Diretórios dos TFRecords
 train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Treino/*.tfrecord')
@@ -62,84 +84,37 @@ val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Validação/*.tfrecord')
 train_dataset = load_dataset(train_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 val_dataset = load_dataset(val_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 
-# Definir os pesos de classe ajustados
-class_weights = {
-    0: 33.5,     # 94 exemplos
-    1: 312.2,    # 10 exemplos
-    2: 208.2,    # 15 exemplos
-    3: 223.0,    # 14 exemplos
-    4: 184.2,    # 17 exemplos
-    5: 6244.0,   # 1 exemplo
-    6: 28.9,     # 108 exemplos
-    7: 447.4,    # 7 exemplos
-    8: 6244.0,   # 1 exemplo
-    9: 390.3,    # 8 exemplos
-    10: 624.4,   # 5 exemplos
-    11: 195.3,   # 16 exemplos
-    12: 60.0,    # 52 exemplos
-    13: 312.2,   # 10 exemplos
-    14: 240.2,   # 13 exemplos
-    15: 1041.3,  # 3 exemplos
-    16: 6244.0,  # 1 exemplo
-    17: 624.4,   # 5 exemplos
-    18: 6244.0,  # 1 exemplo
-    20: 3.96,    # 789 exemplos
-    21: 32.4,    # 96 exemplos
-    22: 390.3,   # 8 exemplos
-    23: 780.5,   # 4 exemplos
-    24: 65.0,    # 48 exemplos
-    25: 72.7,    # 43 exemplos
-    26: 71.0,    # 44 exemplos
-    27: 14.4,    # 217 exemplos
-    28: 284.7,   # 11 exemplos
-    29: 1041.3,  # 3 exemplos
-    30: 284.7,   # 11 exemplos
-    31: 520.4,   # 6 exemplos
-    32: 94.7,    # 33 exemplos
-    33: 1.0,     # 3122 exemplos
-    34: 15.7,    # 198 exemplos
-    35: 120.3,   # 26 exemplos
-    36: 31.0,    # 101 exemplos
-    38: 208.2,   # 15 exemplos
-    39: 780.5,   # 4 exemplos
-    40: 780.5,   # 4 exemplos
-    41: 1561.0,  # 2 exemplos
-    42: 6244.0   # 1 exemplo
-}
+# Calcular os pesos de classe automaticamente
+class_weights = compute_class_weights(load_dataset(train_tfrecords).batch(1), num_classes=43)
 
 # Treinar o modelo (primeira fase)
 early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
-# Armazenar as métricas em uma lista
-history_data = []
+# Início da contagem de tempo
+start_time = time.time()
 
 history = model.fit(
     train_dataset,
     validation_data=val_dataset,
     epochs=10,
-    class_weight=class_weights,  # Adicionar pesos de classe aqui
+    class_weight=class_weights,
     callbacks=[early_stopping]
 )
 
-# Coletar as métricas de treinamento e validação
-for epoch in range(len(history.history['loss'])):
-    history_data.append({
-        'epoch': epoch + 1,
-        'loss': history.history['loss'][epoch],
-        'accuracy': history.history['accuracy'][epoch],
-        'val_loss': history.history['val_loss'][epoch],
-        'val_accuracy': history.history['val_accuracy'][epoch]
-    })
-
-# Criar um DataFrame do pandas e salvar em um arquivo Excel
-results_df = pd.DataFrame(history_data)
-results_df.to_excel('Resultados 1.xlsx', index=False)
+# Criar DataFrame para salvar resultados da primeira fase
+results_df = pd.DataFrame({
+    'epoch': range(1, len(history.history['loss']) + 1),
+    'loss': history.history['loss'],
+    'accuracy': history.history['accuracy'],
+    'val_loss': history.history['val_loss'],
+    'val_accuracy': history.history['val_accuracy']
+})
 
 # Descongelar as últimas camadas da ResNet
-for layer in base_model.layers[-50:]:  # Ajuste o número de camadas conforme necessário
+for layer in base_model.layers[-50:]:
     layer.trainable = True
 
-# Compilar novamente o modelo com uma taxa de aprendizado menor
+# Compilar novamente com uma taxa de aprendizado menor
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
@@ -149,17 +124,35 @@ fine_tune_history = model.fit(
     train_dataset,
     validation_data=val_dataset,
     epochs=10,
-    class_weight=class_weights,  # Incluir novamente os pesos de classe
+    class_weight=class_weights,
     callbacks=[early_stopping]
 )
 
+# Atualizar DataFrame com resultados da segunda fase
+fine_tune_df = pd.DataFrame({
+    'epoch': range(len(results_df) + 1, len(results_df) + len(fine_tune_history.history['loss']) + 1),
+    'loss': fine_tune_history.history['loss'],
+    'accuracy': fine_tune_history.history['accuracy'],
+    'val_loss': fine_tune_history.history['val_loss'],
+    'val_accuracy': fine_tune_history.history['val_accuracy']
+})
+
+# Concatenar resultados da primeira e segunda fase
+results_df = pd.concat([results_df, fine_tune_df], ignore_index=True)
+
+# Salvar o DataFrame em um arquivo Excel
+results_df.to_excel("Resultados 1.xlsx", index=False)
+
 # Avaliar o modelo
-# Carregar o conjunto de teste
 test_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Teste/*.tfrecord')
 test_dataset = load_dataset(test_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 
-# Avaliar o modelo no conjunto de teste
 test_loss, test_accuracy = model.evaluate(test_dataset)
+
+end_time = time.time()  # Fim
+total_time = (end_time - start_time) / 60  # Converter para minutos
+# Imprimir o tempo total
+print(f"Tempo total: {total_time:.2f} minutos")
 
 print(f'Test Loss: {test_loss}')
 print(f'Test Accuracy: {test_accuracy}')

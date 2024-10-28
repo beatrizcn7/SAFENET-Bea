@@ -5,8 +5,10 @@ from tensorflow.keras.applications import ResNet50 # Modelo pré-treinado utiliz
 import pandas as pd # Serva para manipulação e análise de dados
 import matplotlib.pyplot as plt # Para criar gráficos de diferentes tipos
 import seaborn as sns # Para criar gráficos mais elaborados
-from sklearn.metrics import confusion_matrix # Usada para calcular a matriz de confusão
+from sklearn.metrics import confusion_matrix, roc_curve, auc # Usada para calcular a matriz de confusão, e a curva ROC e AUC
 import numpy as np # Útil para operações matemáticas
+import time  # Biblioteca para contar o tempo
+from sklearn.preprocessing import label_binarize # Transforma um array de classes numa matriz binária
 
 # --------------------- Modelo ------------------
 # Cria uma instância do modelo ResNet50 com pesos pré-treinados do ImageNet
@@ -67,6 +69,9 @@ val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Validação/*.tfrecord')
 train_dataset = load_dataset(train_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 val_dataset = load_dataset(val_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 
+# Início da contagem de tempo
+start_time = time.time()
+
 # Treinar o modelo
 history = model.fit(
     train_dataset,
@@ -81,6 +86,11 @@ test_dataset = load_dataset(test_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 # Avaliar o modelo no conjunto de teste
 test_loss, test_accuracy = model.evaluate(test_dataset)
 
+end_time = time.time()  # Fim
+total_time = (end_time - start_time) / 60  # Converter para minutos
+# Imprimir o tempo total
+print(f"Tempo total: {total_time:.2f} minutos")
+
 # Imprime os resultados da perda e da exatidão dos dados teste
 print(f'Teste Loss: {test_loss}')
 print(f'Teste Accuracy: {test_accuracy}')
@@ -90,12 +100,57 @@ print(f'Teste Accuracy: {test_accuracy}')
 
 y_true = [] # armazena as labels verdadeiras de cada batch dos dados teste
 y_pred = [] # armazena as previsões feitas pelo modelo
+y_pred_probs = [] # armazena as probabilidades previstas para cada classe
 
 # Recolher as labels verdadeiras e as previsões
 for images, labels in test_dataset:
     preds = model.predict(images)
     y_true.extend(labels.numpy())
     y_pred.extend(np.argmax(preds, axis=1))
+    y_pred_probs.extend(preds)
+
+# Colocar binário as classes
+y_true_binarized = label_binarize(y_true, classes=range(43))
+
+# Calcular as classes com casos de teste
+classes_with_samples = np.unique(y_true)  # Descobrir automaticamente as classes com casos de teste
+
+# Definir o layout dos gráficos para cada intervalo de classes
+def plot_roc_for_classes(classes, n_rows, n_cols, file_name):
+    plt.figure(figsize=(n_cols * 5, n_rows * 4))
+    for idx, cls in enumerate(classes):
+        if cls in classes_with_samples:  # Verifica se há casos de teste para essa classe
+            fpr, tpr, _ = roc_curve(y_true_binarized[:, cls], np.array(y_pred_probs)[:, cls])
+            roc_auc = auc(fpr, tpr)
+            plt.subplot(n_rows, n_cols, idx + 1)
+            plt.plot(fpr, tpr, color='blue', label=f'Classe {cls} (AUC = {roc_auc:.2f})')
+            plt.plot([0, 1], [0, 1], color='grey', linestyle='--')
+            plt.xlim([0.0, 1.0])
+            plt.ylim([0.0, 1.05])
+            plt.xlabel('Falso Positivo')
+            plt.ylabel('Verdadeiro Positivo')
+            plt.title(f'ROC Classe {cls}')
+            plt.legend(loc="lower right")
+        else:
+            plt.subplot(n_rows, n_cols, idx + 1)
+            plt.text(0.5, 0.5, 'Sem dados', horizontalalignment='center', verticalalignment='center', fontsize=12)
+            plt.xlim([0.0, 1.0])
+            plt.ylim([0.0, 1.05])
+            plt.xlabel('Falso Positivo')
+            plt.ylabel('Verdadeiro Positivo')
+            plt.title(f'ROC Classe {cls}')
+
+    plt.tight_layout()
+    plt.savefig(file_name)
+    plt.show()
+
+# Gerar gráfico para classes 0 a 20 (3 colunas e 7 linhas)
+plot_roc_for_classes(range(0, 21), 7, 3, 'ROC 0 a 20.png')
+
+# Gerar gráfico para classes 22 a 42 (2 colunas e 11 linhas)
+plot_roc_for_classes(range(21, 43), 11, 2, 'ROC 21 a 42.png')
+
+print('Gráficos ROC e AUC feitos.')
 
 # Calcular a matriz de confusão
 cm = confusion_matrix(y_true, y_pred, labels=range(43))
@@ -114,7 +169,7 @@ print('Matriz de confusão criada')
 # Criar um dataframe a partir da matriz de confusão
 cm_df = pd.DataFrame(cm, index=[f'Verdadeiro {i}' for i in range(43)], columns=[f'Previsto {i}' for i in range(43)])
 
-# Salvar o dataframe num arquivo Excel
+# Guardarr o dataframe num ficheiro Excel
 cm_df.to_excel('Matriz de Confusão.xlsx', index=True)
 
 print('Matriz de confusão guardada no Excel')
@@ -154,7 +209,7 @@ metrics_df = pd.DataFrame({
     'F1 Score': f1_scores
 })
 
-# Salvar o dataframe das métricas num arquivo Excel
+# Guardar o dataframe das métricas num ficheiro Excel
 metrics_df.to_excel('Métricas.xlsx', index=False)
 
 print('Métricas calculadas')
