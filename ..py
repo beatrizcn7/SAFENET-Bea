@@ -1,134 +1,48 @@
-import tensorflow as tf
-from tensorflow.keras import layers, models
-from tensorflow.keras.applications import ResNet50
-import numpy as np
-import time  # Biblioteca para contar o tempo
+import pandas as pd
+from collections import Counter
 
-# Carregar o modelo ResNet50 com pesos pré-treinados do ImageNet
-base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+# Caminho do Excel 'Base de Dados'
+excel_base_dados_path = 'Base de Dados.xlsx'
 
-# Congelar as camadas do modelo base
-for layer in base_model.layers:
-    layer.trainable = False
+# Ler o arquivo Excel 'Base de Dados', especificamente a segunda folha
+df_base = pd.read_excel(excel_base_dados_path, sheet_name=1)  # 'sheet_name=1' refere-se à segunda folha (conta a partir de 0)
 
-# Camada de aumento de dados
-data_augmentation = models.Sequential([
-    layers.RandomFlip("horizontal_and_vertical"),
-    layers.RandomRotation(0.3),
-    layers.RandomZoom(0.3),
-    layers.RandomContrast(0.3),
-    layers.RandomTranslation(0.2, 0.2),
-], name="data_augmentation")
+# Verificar os nomes das colunas para garantir que estamos usando os corretos
+print("Colunas no DataFrame:")
+print(df_base.columns)
 
-# Construir o modelo completo
-model = models.Sequential([
-    layers.Input(shape=(224, 224, 3)),
-    data_augmentation,
-    base_model,
-    layers.Flatten(),
-    layers.Dense(1024, activation='relu'),
-    layers.Dropout(0.5),
-    layers.Dense(43, activation='softmax')  # 43 classes
-])
+# Criar um DataFrame com as colunas relevantes
+# Ajuste os nomes das colunas de acordo com o que você tiver no Excel
+df_combinacoes = df_base[['TEC - Tipo de Estrutura 3', 'Intervalo de Anos 1', 'Material', 'Fotos']].dropna()
 
-# Compilar o modelo (primeira fase)
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+# Renomear colunas para simplificar a manipulação
+df_combinacoes.columns = ['Tipo de Estrutura', 'Intervalo de Anos', 'Material', 'Quantidade']
 
-# Função para carregar TFRecords
-def parse_tfrecord(example_proto):
-    feature_description = {
-        'image/encoded': tf.io.FixedLenFeature([], tf.string),
-        'image/object/class/label': tf.io.FixedLenFeature([], tf.int64),
-    }
-    return tf.io.parse_single_example(example_proto, feature_description)
+# Criar uma combinação para cada linha e multiplicar pela quantidade de fotos
+combinacoes_counter = Counter()
 
-def load_dataset(file_paths):
-    raw_dataset = tf.data.TFRecordDataset(file_paths)
-    return raw_dataset.map(parse_tfrecord).map(
-        lambda x: (
-            tf.image.resize(tf.image.decode_jpeg(x['image/encoded'], channels=3), [224, 224]),
-            x['image/object/class/label']
-        )
-    )
+for _, row in df_combinacoes.iterrows():
+    combinacao = (row['Tipo de Estrutura'], row['Intervalo de Anos'], row['Material'])
+    quantidade_fotos = row['Quantidade']  # 'Quantidade' contém o valor das fotos
+    combinacoes_counter[combinacao] += quantidade_fotos
 
-# Contar os exemplos por classe e garantir que todas as classes estejam representadas
-def compute_class_weights(dataset, num_classes=43):
-    class_counts = {}
-    total_count = 0
-
-    for _, label in dataset:
-        label = int(label.numpy())  # Converter o rótulo para um inteiro
-        class_counts[label] = class_counts.get(label, 0) + 1
-        total_count += 1
-
-    class_weights = {
-        label: total_count / (count * num_classes) if count > 0 else 0
-        for label, count in class_counts.items()
-    }
-
-    # Garantir que todas as classes estejam representadas de 0 até num_classes - 1
-    for label in range(num_classes):
-        if label not in class_weights:
-            class_weights[label] = 0
-
-    return class_weights
-
-# Diretórios dos TFRecords
-train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Treino/*.tfrecord')
-val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Validação/*.tfrecord')
-
-# Carregar os datasets
-train_dataset = load_dataset(train_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
-val_dataset = load_dataset(val_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
-
-# Calcular os pesos de classe automaticamente
-class_weights = compute_class_weights(load_dataset(train_tfrecords).batch(1), num_classes=43)
-
-# Treinar o modelo (primeira fase)
-early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
-
-# Início da contagem de tempo
-start_time = time.time()
-
-history = model.fit(
-    train_dataset,
-    validation_data=val_dataset,
-    epochs=10,
-    class_weight=class_weights,
-    callbacks=[early_stopping]
+# Criar um DataFrame a partir das combinações e contagens
+combinacoes_df = pd.DataFrame(
+    combinacoes_counter.items(),
+    columns=['Combinação', 'Quantidade']
 )
 
-# Descongelar as últimas camadas da ResNet
-for layer in base_model.layers[-50:]:
-    layer.trainable = True
+# Separar as combinações em colunas distintas
+combinacoes_df[['Tipo de Estrutura', 'Intervalo de Anos', 'Material']] = pd.DataFrame(combinacoes_df['Combinação'].tolist(), index=combinacoes_df.index)
 
-# Compilar novamente com uma taxa de aprendizado menor
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+# Remover a coluna 'Combinação' pois já separamos em colunas distintas
+combinacoes_df = combinacoes_df.drop(columns=['Combinação'])
 
-# Continuar o treinamento (segunda fase com fine-tuning)
-fine_tune_history = model.fit(
-    train_dataset,
-    validation_data=val_dataset,
-    epochs=10,
-    class_weight=class_weights,
-    callbacks=[early_stopping]
-)
+# Reorganizar as colunas para uma ordem mais clara
+combinacoes_df = combinacoes_df[['Tipo de Estrutura', 'Intervalo de Anos', 'Material', 'Quantidade']]
 
-# Avaliar o modelo
-test_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord/Teste/*.tfrecord')
-test_dataset = load_dataset(test_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
+# Exportar para um arquivo Excel
+output_excel_path = 'Combinações 1.xlsx'
+combinacoes_df.to_excel(output_excel_path, index=False)
 
-test_loss, test_accuracy = model.evaluate(test_dataset)
-
-end_time = time.time()  # Fim
-total_time = (end_time - start_time) / 60  # Converter para minutos
-# Imprimir o tempo total
-print(f"Tempo total: {total_time:.2f} minutos")
-
-
-print(f'Test Loss: {test_loss}')
-print(f'Test Accuracy: {test_accuracy}')
+print(f"Arquivo Excel criado: {output_excel_path}")
