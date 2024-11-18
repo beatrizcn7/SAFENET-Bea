@@ -1,15 +1,20 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" ?>
 <annotation verified="yes">
-	<folder>Pasta Final</folder>
-	<filename>2104_6.jpg</filename>
-	<path>C:\Users\beatr\Documents\GitHub\SAFENET-Bea\Pasta Final\2104_6.jpg</path>
-	<source>
-		<database>Unknown</database>
-	</source>
-	<size>
-		<width>224</width>
-		<height>224</height>
-		<depth>3</depth>
-	</size>
-	<segmented>0</segmented>
-<structure><type>Vãos Multiplos</type><material>Betão Armado</material><year_range>1983-2010</year_range></structure></annotation>
+    <folder>Pasta Final</folder>
+    <filename>2104_6.jpg</filename>
+    <path>Pasta Final\2104_6.jpg</path>
+    <source>
+        <database>Unknown</database>
+    </source>
+    <size>
+        <width>224</width>
+        <height>224</height>
+        <depth>3</depth>
+    </size>
+    <segmented>0</segmented>
+    <structure>
+        <type>Vãos Multiplos</type>
+        <material>Betão Armado</material>
+        <year_range>Depois de 1983</year_range>
+    </structure>
+</annotation>

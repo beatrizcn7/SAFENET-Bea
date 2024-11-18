@@ -1,0 +1,4 @@
+Contagem de classes:
+Classe 0: 186 ficheiros
+Classe 1: 143 ficheiros
+Classe 2: 6130 ficheiros

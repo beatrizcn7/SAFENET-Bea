@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 # Caminho para o ficheiro Excel e diretórios
 excel_path = 'Dados.xlsx'
 diretorio_principal = 'Fotos'
-diretorio_xml = 'XML 2'
+diretorio_xml = 'XML'
 
 # Tenta carregar o Excel
 try:
@@ -41,8 +41,8 @@ for bridge_id_int in range(1, 2557):
 
     # Informações da ponte
     tipo_estrutura = linha_ponte['TEC - Tipo de Estrutura 2']
-    intervalo_anos = linha_ponte['Intervalo de Anos']
-    material = linha_ponte['CON - Material']
+    intervalo_anos = linha_ponte['Intervalo de Anos 1']
+    material = linha_ponte['Material']
 
     # Lista de fotos na pasta da ponte
     fotos_ponte = [f for f in os.listdir(pasta_ponte) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.gif'))]

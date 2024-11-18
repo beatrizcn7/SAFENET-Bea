@@ -2,7 +2,7 @@ import os
 import xml.etree.ElementTree as ET
 
 # Caminho da pasta de ficheiros XML
-xml_root_dir = 'XML 2'
+xml_root_dir = 'XML'
 
 # Campos obrigatórios
 required_fields = ['Id', 'TipoDeEstrutura', 'Material', 'IntervaloDeAnos']

@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<annotation verified="yes">
+	<folder>Pasta Final</folder>
+	<filename>961_1.jpg</filename>
+	<path>C:\Users\beatr\Documents\GitHub\SAFENET-Bea\Pasta Final\961_1.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>224</width>
+		<height>224</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+<structure><type>Arco</type><material>Alvenaria de Pedra</material><year_range>Antes de 1960</year_range></structure></annotation>

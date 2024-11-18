@@ -3,10 +3,10 @@ import random
 import shutil
 
 # Diretório que contém os arquivos TFRecord
-tfrecord_dir = 'Pasta Final TFRecord 1'
-output_train_dir = 'Pasta Final TFRecord 1/Treino'
-output_val_dir = 'Pasta Final TFRecord 1/Validação'
-output_test_dir = 'Pasta Final TFRecord 1/Teste'
+tfrecord_dir = 'Pasta Final TFRecord - Material + Ano + Estrutura'
+output_train_dir = 'Pasta Final TFRecord - Material + Ano + Estrutura/Treino'
+output_val_dir = 'Pasta Final TFRecord - Material + Ano + Estrutura/Validação'
+output_test_dir = 'Pasta Final TFRecord - Material + Ano + Estrutura/Teste'
 
 # Criar pastas para treino, validação e teste se não existirem
 os.makedirs(output_train_dir, exist_ok=True)

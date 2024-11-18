@@ -49,7 +49,7 @@ def verificar_e_normalizar_xml(xml_path):
 
 
 # Caminho da pasta de ficheiros XML
-xml_root_dir = 'XML 2'
+xml_root_dir = '42 classes/XML 2'
 
 # Percorrer todos os arquivos XML na pasta
 for subdir, _, files in os.walk(xml_root_dir):

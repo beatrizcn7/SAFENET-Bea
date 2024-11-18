@@ -58,9 +58,9 @@ def load_dataset(tfrecord_dir, batch_size=32, shuffle=True):
 
 
 # Especificar os diretórios para os datasets
-train_dir = 'Pasta Final TFRecord/Treino'  # Substitua pelo caminho correto
-val_dir = 'Pasta Final TFRecord/Validação'  # Substitua pelo caminho correto
-test_dir = 'Pasta Final TFRecord/Teste'  # Substitua pelo caminho correto
+train_dir = 'Pasta Final TFRecord - Material/Treino'  # Substitua pelo caminho correto
+val_dir = 'Pasta Final TFRecord - Material/Validação'  # Substitua pelo caminho correto
+test_dir = 'Pasta Final TFRecord - Material/Teste'  # Substitua pelo caminho correto
 
 # Carrega os datasets de treino, validação e teste
 train_dataset = load_dataset(train_dir, batch_size=32)
@@ -70,4 +70,4 @@ test_dataset = load_dataset(test_dir, batch_size=32, shuffle=False)
 # Verificação: Mostra o shape do primeiro batch de treino
 for images, labels in train_dataset.take(1):
     print("Batch de treino - Imagens:", images.shape)
-    print("Batch de treino - Labels:", labels)
+    print("Batch de treino - Classes:", labels)

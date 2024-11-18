@@ -145,10 +145,10 @@ def plot_roc_for_classes(classes, n_rows, n_cols, file_name):
     plt.show()
 
 # Gerar gráfico para classes 0 a 20 (3 colunas e 7 linhas)
-plot_roc_for_classes(range(0, 21), 7, 3, 'Modelos/Tentativa 2/Novo/ROC 0 a 20.png')
+plot_roc_for_classes(range(0, 21), 7, 3, '42 classes/Modelos/Tentativa 2/Novo/ROC 0 a 20.png')
 
 # Gerar gráfico para classes 22 a 42 (2 colunas e 11 linhas)
-plot_roc_for_classes(range(21, 43), 11, 2, 'Modelos/Tentativa 2/Novo/ROC 21 a 42.png')
+plot_roc_for_classes(range(21, 43), 11, 2, '42 classes/Modelos/Tentativa 2/Novo/ROC 21 a 42.png')
 
 print('Gráficos ROC e AUC feitos.')
 
