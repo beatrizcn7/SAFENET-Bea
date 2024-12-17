@@ -1,7 +1,7 @@
 # ----------------- Bibliotecas ---------------
 import tensorflow as tf # Principal biblioteca de Machine Learnig e Deep Learning. Cria, treina e implementa modelos de resdes neurais.
-from tensorflow.keras import layers, models # API de alto n�vel que facilita a constru��o e treino de redes neurais dentro do TensorFlow
-from tensorflow.keras.applications import Xception # Modelo pr�-treinado utilizado
+from tensorflow.keras import layers, models # API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
+from tensorflow.keras.applications import Xception # Modelo pré-treinado utilizado
 import pandas as pd # Serva para manipulação e análise de dados
 import matplotlib.pyplot as plt # Para criar gráficos de diferentes tipos
 import seaborn as sns # Para criar gráficos mais elaborados
@@ -45,7 +45,7 @@ def load_dataset(file_paths):
     return dataset
 
 train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Treino/*.tfrecord')
-val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Valida��o/*.tfrecord')
+val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Validação/*.tfrecord')
 
 train_dataset = load_dataset(train_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 val_dataset = load_dataset(val_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
@@ -58,6 +58,10 @@ history = model.fit(
     epochs=10
 )
 
+# Guardar o modelo treinado
+model.save('Tentativa 1 - Material.h5')
+print('Guardado o modelo!')
+
 test_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Teste/*.tfrecord')
 test_dataset = load_dataset(test_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 
@@ -68,11 +72,62 @@ total_time = (end_time - start_time) / 60  # Converter para minutos
 # Imprimir o tempo total
 print(f"Tempo total: {total_time:.2f} minutos")
 
-# Imprime os resultados da perda e da exatid�o dos dados teste
+# Imprime os resultados da perda e da exatidão dos dados teste
 print(f'Teste Loss: {test_loss}')
 print(f'Teste Accuracy: {test_accuracy}')
 
 # ------------- Representação de dados ----------
+history_dict = history.history  # Obtém os dados do histórico de treino
+
+data = {
+    'Epoch': list(range(1, len(history_dict['loss']) + 1)),  # Número da época
+    'Loss': history_dict['loss'],
+    'Accuracy': history_dict['accuracy'],
+    'Val_Loss': history_dict.get('val_loss', ['N/A'] * len(history_dict['loss'])),
+    'Val_Accuracy': history_dict.get('val_accuracy', ['N/A'] * len(history_dict['loss']))
+}
+
+# Cria um DataFrame com os dados
+df = pd.DataFrame(data)
+
+# Exporta para um ficheiro Excel
+df.to_excel('Ao longo das Épocas.xlsx', index=False)
+
+print("Excel done")
+
+# Determina o melhor epoch
+best_epoch_acc = np.argmax(history_dict['val_accuracy']) + 1
+best_epoch_loss = np.argmin(history_dict['val_loss']) + 1
+
+# Criação da figura
+plt.figure(figsize=(12, 6))
+
+# Gráfico da Accuracy
+plt.subplot(1, 2, 1)
+plt.plot(data['Epoch'], data['Accuracy'], label='Treino', marker='o')
+plt.plot(data['Epoch'], data['Val_Accuracy'], label='Validação', marker='o')
+plt.axvline(best_epoch_acc, color='r', linestyle='--', label=f'Melhor Epoch ({best_epoch_acc})')
+plt.title('Accuracy ao longo das Épocas')
+plt.xlabel('Épocas')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.grid()
+
+# Gráfico da Loss
+plt.subplot(1, 2, 2)
+plt.plot(data['Epoch'], data['Loss'], label='Treino', marker='o')
+plt.plot(data['Epoch'], data['Val_Loss'], label='Validação', marker='o')
+plt.axvline(best_epoch_loss, color='r', linestyle='--', label=f'Melhor Epoch ({best_epoch_loss})')
+plt.title('Loss ao longo das Épocas')
+plt.xlabel('Épocas')
+plt.ylabel('Loss')
+plt.legend()
+plt.grid()
+
+# Guardar a figura
+plt.tight_layout()
+plt.savefig('Loss e Accuracy.png')
+print("Loss e Accuracy done")
 
 y_true = [] # armazena as classess verdadeiras de cada batch dos dados teste
 y_pred = [] # armazena as previsões feitas pelo modelo
@@ -88,57 +143,9 @@ for images, labels in test_dataset:
 # Colocar binário as classes
 y_true_binarized = label_binarize(y_true, classes=range(3))
 
-# Calcular as classes com casos de teste
-classes_with_samples = np.unique(y_true)  # Descobrir automaticamente as classes com casos de teste
-
-# Função para fazer o gráfico de ROC para as 5 classes
-def plot_roc_for_three_classes(classes, file_name):
-    plt.figure(figsize=(20, 5))  # Ajuste para 3 colunas e 1 linha
-
-    for idx, cls in enumerate(classes):
-        fpr, tpr, _ = roc_curve(y_true_binarized[:, cls], np.array(y_pred_probs)[:, cls])
-        roc_auc = auc(fpr, tpr)
-
-        plt.subplot(1, 5, idx + 1)
-        plt.plot(fpr, tpr, color='blue', label=f'Classe {cls} (AUC = {roc_auc:.2f})')
-        plt.plot([0, 1], [0, 1], color='grey', linestyle='--')
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel('Falso Positivo')
-        plt.ylabel('Verdadeiro Positivo')
-        plt.title(f'ROC Classe {cls}')
-        plt.legend(loc="lower right")
-
-    plt.tight_layout()
-    plt.savefig(file_name)
-    plt.show()
-
-# Gerar o gráfico para as 3 classes
-plot_roc_for_three_classes(range(3), 'ROC.png')
-
-print('Gráficos ROC e AUC feitos.')
 
 # Calcular a matriz de confusão
 cm = confusion_matrix(y_true, y_pred, labels=range(3))
-
-# Fazer o gráfico da matriz de confusão
-plt.figure(figsize=(12, 10))
-sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=range(3), yticklabels=range(3))
-plt.title('Matriz de Confusão')
-plt.xlabel('Classe Prevista')
-plt.ylabel('Classe Verdadeira')
-plt.savefig('Matriz de Confusão.png')  # Guardar a matriz de confusão como imagem
-plt.show()
-
-print('Matriz de confusão criada')
-
-# Criar um dataframe a partir da matriz de confusão
-cm_df = pd.DataFrame(cm, index=[f'Verdadeiro {i}' for i in range(3)], columns=[f'Previsto {i}' for i in range(3)])
-
-# Salvar o dataframe num arquivo Excel
-cm_df.to_excel('Matriz de Confusão.xlsx', index=True)
-
-print('Matriz de confusão guardado no Excel')
 
 # Inicializar as listas para armazenar as métricas (exatidão, precisão, recuperação e F1)
 accuracies, precisions, recalls, f1_scores = [], [], [], []
@@ -180,57 +187,6 @@ metrics_df.to_excel('Métricas.xlsx', index=False)
 
 print('Métricas calculadas')
 
-# Criar um dataframe com os resultados de cada época
-results_df = pd.DataFrame({
-    'Epoch': range(1, len(history.history['accuracy']) + 1),
-    'Loss': history.history['loss'],
-    'Accuracy': history.history['accuracy'],
-    'Val Loss': history.history['val_loss'],
-    'Val Accuracy': history.history['val_accuracy']
-})
-
-# Guardar o dataframe de resultados num arquivo Excel
-results_df.to_excel('Ao longo das Épocas.xlsx', index=False)
-
-print('Excel criado')
-
-# Fazer os gráficos de accuracy e loss
-epochs = range(1, len(history.history['accuracy']) + 1)
-
-# Identificar a melhor epoch
-best_epoch_acc = epochs[history.history['val_accuracy'].index(max(history.history['val_accuracy']))]
-best_epoch_loss = epochs[history.history['val_loss'].index(min(history.history['val_loss']))]
-
-plt.figure(figsize=(12, 5))
-
-# Gráfico 1: Accuracy ao longo das épocas
-plt.subplot(1, 2, 1)
-plt.plot(epochs, history.history['accuracy'], label='Accuracy de Treino', marker='o')
-plt.plot(epochs, history.history['val_accuracy'], label='Accuracy de Validação', marker='o')
-plt.axvline(x=best_epoch_acc, color='r', linestyle='--', label=f'Melhor Epoch {best_epoch_acc}')
-plt.title('Accuracy ao longo dos Epochs')
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.legend()
-
-# Gráfico 2: Loss ao longo das épocas
-plt.subplot(1, 2, 2)
-plt.plot(epochs, history.history['loss'], label='Loss de Treino', marker='o')
-plt.plot(epochs, history.history['val_loss'], label='Loss de Validação', marker='o')
-plt.axvline(x=best_epoch_loss, color='r', linestyle='--', label=f'Melhor Epoch {best_epoch_loss}')
-plt.title('Loss ao longo dos Epochs')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
-
-# Ajustar layout e mostrar os gráficos
-plt.tight_layout()
-plt.savefig('Loss e Accuracy.png')  # Guardar os gráficos numa imagem
-plt.show()
-
-print('Gráficos de Accuracy e Loss criados')
-
-# Fazer os gráficos para cada métrica individual e guardar separadamente
 metrics = ['Accuracy', 'Precision', 'Recall', 'F1 Score']
 file_names = ['Accuracy.png', 'Precision.png', 'Recall.png', 'F1 Score.png']
 
@@ -247,3 +203,48 @@ for metric, file_name in zip(metrics, file_names):
     plt.show()
 
 print('Gráficos individuais criados.')
+
+# Fazer o gráfico da matriz de confusão
+plt.figure(figsize=(12, 10))
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=range(3), yticklabels=range(3))
+plt.title('Matriz de Confusão')
+plt.xlabel('Classe Prevista')
+plt.ylabel('Classe Verdadeira')
+plt.savefig('Matriz de Confusão.png')  # Guardar a matriz de confusão como imagem
+plt.show()
+
+print('Matriz de confusão criada')
+
+# Criar um dataframe a partir da matriz de confusão
+cm_df = pd.DataFrame(cm, index=[f'Verdadeiro {i}' for i in range(3)], columns=[f'Previsto {i}' for i in range(3)])
+
+# Salvar o dataframe num arquivo Excel
+cm_df.to_excel('Matriz de Confusão.xlsx', index=True)
+
+print('Matriz de confusão guardado no Excel')
+
+def plot_roc_for_three_classes(classes, file_name):
+    plt.figure(figsize=(20, 5))  # Ajuste para 3 colunas e 1 linha
+
+    for idx, cls in enumerate(classes):
+        fpr, tpr, _ = roc_curve(y_true_binarized[:, cls], np.array(y_pred_probs)[:, cls])
+        roc_auc = auc(fpr, tpr)
+
+        plt.subplot(1, 5, idx + 1)
+        plt.plot(fpr, tpr, color='blue', label=f'Classe {cls} (AUC = {roc_auc:.2f})')
+        plt.plot([0, 1], [0, 1], color='grey', linestyle='--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('Falso Positivo')
+        plt.ylabel('Verdadeiro Positivo')
+        plt.title(f'ROC Classe {cls}')
+        plt.legend(loc="lower right")
+
+    plt.tight_layout()
+    plt.savefig(file_name)
+    plt.show()
+
+# Gerar o gráfico para as 3 classes
+plot_roc_for_three_classes(range(3), 'Material/Xception/Tentativa 1/ROC.png')
+
+print('Gráficos ROC e AUC feitos.')
