@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 # Caminho da pasta final com os XML e fotos
-pasta_final = "Pasta Final"
+pasta_final = "Pasta Final 1"
 novo_tamanho = (224, 224, 3)  # Largura, altura, profundidade (RGB)
 
 # Função para processar cada arquivo XML

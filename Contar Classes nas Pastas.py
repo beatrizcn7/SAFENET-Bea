@@ -34,7 +34,7 @@ def parse_tfrecord(example):
     return tf.io.parse_single_example(example, feature_description)
 
 # Caminho das pastas
-base_path = 'Pasta Final TFRecord - Material + Ano + Estrutura'
+base_path = 'Pasta Final TFRecord - Material'
 folders = ['Treino', 'Validação', 'Teste']
 
 # Dicionário para armazenar contagens de labels
@@ -47,7 +47,7 @@ for folder in folders:
     all_label_counts[folder] = label_counts
 
 # Escrever resultados em um arquivo de texto
-with open('Material + Ano + Estrutura/Classes nas Pastas - Material + Ano + Estrutura.txt', 'w') as f:
+with open('Material/Classes nas Pastas - Material.txt', 'w') as f:
     for folder, counts in all_label_counts.items():
         f.write(f'Pasta: {folder}\n')
         for label in sorted(counts.keys()):  # Ordenar as labels em ordem crescente

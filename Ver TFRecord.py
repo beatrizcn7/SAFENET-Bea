@@ -1,61 +1,51 @@
-# -*- coding: utf-8 -*-
 import tensorflow as tf
-from PIL import Image
-import io
-import matplotlib.pyplot as plt
 
 
-# Função para ler e exibir o conteúdo de um arquivo TFRecord
-def read_tfrecord(tfrecord_path):
-    # Criar um iterador para o arquivo TFRecord
-    raw_dataset = tf.data.TFRecordDataset([tfrecord_path])
-
-    # Definir as características que o TFRecord contém
-    feature_description = {
-        'image/height': tf.io.FixedLenFeature([], tf.int64),
-        'image/width': tf.io.FixedLenFeature([], tf.int64),
-        'image/filename': tf.io.FixedLenFeature([], tf.string),
-        'image/source_id': tf.io.FixedLenFeature([], tf.string),
+def _parse_function(proto):
+    # Definição do schema do TFRecord
+    keys_to_features = {
         'image/encoded': tf.io.FixedLenFeature([], tf.string),
         'image/format': tf.io.FixedLenFeature([], tf.string),
-        'image/object/class/label': tf.io.FixedLenFeature([], tf.int64),
-        'image/structure/material': tf.io.FixedLenFeature([], tf.string),
+        'image/class/label': tf.io.FixedLenFeature([1], tf.int64)
     }
 
-    # Função para parsear cada exemplo
-    def _parse_function(proto):
-        # Parse do exemplo com base no 'feature_description'
-        parsed_features = tf.io.parse_single_example(proto, feature_description)
+    # Parse dos dados do TFRecord
+    parsed_features = tf.io.parse_single_example(proto, keys_to_features)
 
-        # Decodificar a imagem
-        image = tf.image.decode_jpeg(parsed_features['image/encoded'])
-        image = tf.image.resize(image, [parsed_features['image/height'], parsed_features['image/width']])
+    # Obtendo os dados da imagem e o formato
+    image_data = parsed_features['image/encoded']
+    image_format = parsed_features['image/format']
 
-        # Obter as informações
-        filename = parsed_features['image/filename']
-        label = parsed_features['image/object/class/label']
-        material = parsed_features['image/structure/material']
+    # Checar o formato da imagem e garantir que é JPEG
+    # Usamos tf.strings para comparar os valores de forma eficiente no gráfico
+    image_format = tf.strings.regex_full_match(image_format, b'jpeg')
+    image_format = tf.cast(image_format, tf.bool)
 
-        return image, filename, label, material
+    # Levanta um erro se o formato não for JPEG
+    if not image_format:
+        raise ValueError(f"Formato da imagem não é JPEG, mas sim: {image_format.numpy()}")
 
-    # Aplicar a função de parsing
+    # Decodificar a imagem
+    image = tf.image.decode_jpeg(image_data, channels=3)
+
+    return image, parsed_features['image/class/label']
+
+
+def read_tfrecord(tfrecord_path):
+    # Ler o arquivo TFRecord
+    raw_dataset = tf.data.TFRecordDataset(tfrecord_path)
+
+    # Mapear a função de parsing para o dataset
     parsed_dataset = raw_dataset.map(_parse_function)
 
-    # Iterar sobre o dataset e exibir a primeira imagem
-    for image, filename, label, material in parsed_dataset:
-        print(f"Arquivo: {filename.numpy().decode('utf-8')}")
-        print(f"Label: {label.numpy()}")
-        print(f"Material: {material.numpy().decode('utf-8')}")
+    # Iterar sobre o dataset
+    for image, label in parsed_dataset:
+        print(f"Imagem: {image.shape}, Label: {label.numpy()}")
 
-        # Exibir a imagem
-        plt.imshow(image.numpy())
-        plt.axis('off')
-        plt.show()
-        break  # Exibir apenas a primeira imagem (remover isso para ver todas)
 
 
 # Caminho do arquivo TFRecord
-tfrecord_path = 'Pasta Final TFRecord - Material/1_1.tfrecord'
+tfrecord_path = 'Pasta Final TFRecord - Material + Ano + Estrutura/Treino/1021_2.tfrecord'
 
-# Ler e exibir o conteúdo do arquivo TFRecord
+# Chamar a função para ler o TFRecord
 read_tfrecord(tfrecord_path)

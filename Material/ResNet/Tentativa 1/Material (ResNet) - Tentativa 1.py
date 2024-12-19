@@ -5,26 +5,32 @@ from tensorflow.keras.applications import ResNet50 # Modelo pré-treinado utiliza
 import time  # Biblioteca para contar o tempo
 
 # --------------------- Modelo ------------------
-# Cria uma instância do modelo ResNet50 com pesos pré-treinados do ImageNet
+# Instanciar um modelo base com pesos pré-treinados
 base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
 # Congelar as camadas do modelo base
 for layer in base_model.layers:
     layer.trainable = False
 
-# Cria um novo modelo
-model = models.Sequential()
-model.add(base_model)
-model.add(layers.Flatten())
-model.add(layers.Dense(3, activation='softmax'))  # 3 classes
+# Criar um novo modelo na parte superior.
+inputs = layers.Input(shape=(224, 224, 3))
+x = base_model(inputs, training=False)
+x = layers.GlobalAveragePooling2D()(x)
 
-# Compilar o modelo
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+# Camada densa para classificação
+outputs = layers.Dense(3, activation='softmax')(x)  # 3 classes
 
-# Resumir o modelo
-# model.summary()
+# Modelo final
+model = models.Model(inputs, outputs)
+
+# Agora, vamos descongelar algumas camadas para fine-tuning (ajustar a rede para os seus dados)
+for layer in base_model.layers[-10:]:  # Descongelar as últimas 10 camadas, pode ajustar conforme necessário
+    layer.trainable = True
+
+# Compilar o modelo com o otimizador, função de perda e métricas
+model.compile(optimizer=tf.keras.optimizers.Adam(),
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+              metrics=[tf.keras.metrics.SparseCategoricalAccuracy()])
 
 # Função para carregar TFRecords
 def parse_tfrecord(example):
@@ -36,11 +42,11 @@ def parse_tfrecord(example):
     return tf.io.parse_single_example(example, feature_description)
 
 def load_dataset(file_paths):
-    # Cria um dataset a partir de múltiplos ficheiros TFRecord
+    # Cria um dataset a partir de múltiplos arquivos TFRecord
     raw_dataset = tf.data.TFRecordDataset(file_paths)
     return raw_dataset.map(parse_tfrecord).map(
         lambda x: (
-            tf.image.resize(tf.image.decode_jpeg(x['image/encoded'], channels=3), [224, 224]),
+            tf.image.resize(tf.image.decode_jpeg(x['image/encoded'], channels=3), [224, 224]),  # Ajuste das imagens para 224x224
             x['image/object/class/label']
         )
     )

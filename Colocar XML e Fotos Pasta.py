@@ -40,7 +40,7 @@ def organizar_pasta_final(pasta_final):
 def main():
     pasta_imagens = 'Fotos Normalizadas'
     pasta_xml = 'XML'
-    pasta_final = 'Pasta Final'
+    pasta_final = 'Pasta Final 1'
 
     criar_pasta_final(pasta_final)
 

@@ -1,15 +1,15 @@
 Pasta: Treino
-Classe 0: 157
-Classe 1: 119
-Classe 2: 4891
+Classe 0: 146
+Classe 1: 114
+Classe 2: 4907
 
 Pasta: Validação
-Classe 0: 7
+Classe 0: 23
 Classe 1: 13
-Classe 2: 625
+Classe 2: 609
 
 Pasta: Teste
-Classe 0: 22
-Classe 1: 11
+Classe 0: 17
+Classe 1: 16
 Classe 2: 614
 
