@@ -1,55 +1,52 @@
 # ----------------- Bibliotecas ---------------
-# Importar a principal biblioteca de Machine Learning e Deep Learning.
-# Criar, treinar e implementar modelos de redes neurais.
-import tensorflow as tf
-# Importar a API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
-from tensorflow.keras import layers, models
-# Importar o modelo pré-treinado ResNet50
-from tensorflow.keras.applications import ResNet50
-# Importar a biblioteca para contar o tempo
-import time
-
+import tensorflow as tf # Principal biblioteca de Machine Learnig e Deep Learning. Cria, treina e implementa modelos de resdes neurais.
+from tensorflow.keras import layers, models # API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
+from tensorflow.keras.applications import ResNet50 # Modelo pré-treinado utilizado
+import time  # Biblioteca para contar o tempo
 
 # --------------------- Modelo ------------------
-# Instanciar um modelo base com pesos pré-treinados
+# Cria uma instância do modelo ResNet50 com pesos pré-treinados do ImageNet
 base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
 # Congelar as camadas do modelo base
 for layer in base_model.layers:
     layer.trainable = False
 
-# Criar um novo modelo na parte superior.
-inputs = layers.Input(shape=(224, 224, 3))  # Definir a entrada do modelo com tamanho 224x224 e 3 canais de cor
-x = base_model(inputs, training=False)  # Passar a entrada pela base do modelo (sem treino das camadas base)
-x = layers.GlobalAveragePooling2D()(x)  # Aplicar uma camada de pooling global para reduzir a dimensionalidade
+# Aumentar os dados de treino com rotações, refleção, zoom aleatoriamente
+data_augmentation = models.Sequential([
+    layers.RandomFlip("horizontal_and_vertical"), # verticalmente ou horizontalmente
+    layers.RandomRotation(0.2), # até 20%
+    layers.RandomZoom(0.1), # até 10%
+], name="data_augmentation")
 
-# Criar uma camada densa com 3 classes (saída da classificação) e função de ativação softmax
-outputs = layers.Dense(3, activation='softmax')(x)
+# Criar um novo modelo
+model = models.Sequential([
+    layers.Input(shape=(224, 224, 3)),  # Definir a forma de entrada
+    data_augmentation,  # Adiciona a camada de aumento de dados
+    base_model,
+    layers.Flatten(),
+    layers.Dense(3, activation='softmax')  # As labels vão da 0 à 42 (43 combinações possíveis)
+])
 
-# Criar o modelo final
-model = models.Model(inputs, outputs)  # Definir o modelo com as entradas e saídas especificadas
-
-# Descongelar algumas camadas para fine-tuning (ajustar a rede para os dados)
-for layer in base_model.layers[-10:]:
-    layer.trainable = True
-
-# Compilar o modelo com o otimizador, função de perda e métricas
-model.compile(optimizer=tf.keras.optimizers.Adam(),
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+# Compilar o modelo
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-# Função para carregar e processar os dados dos ficheiros TFRecord
+# Resumir o modelo
+# model.summary()
+
+# Função para carregar TFRecords
 def parse_tfrecord(example):
-    # Definir o formato dos dados no TFRecord
+    # Defina o formato do TFRecord
     feature_description = {
         'image/encoded': tf.io.FixedLenFeature([], tf.string),
         'image/object/class/label': tf.io.FixedLenFeature([], tf.int64),
     }
     return tf.io.parse_single_example(example, feature_description)
 
-# Função para carregar o dataset a partir de vários ficheiros TFRecord
 def load_dataset(file_paths):
-    # Criar um dataset a partir de múltiplos arquivos TFRecord
+    # Cria um dataset a partir de múltiplos ficheiros TFRecord
     raw_dataset = tf.data.TFRecordDataset(file_paths)
     return raw_dataset.map(parse_tfrecord).map(
         lambda x: (
@@ -85,7 +82,6 @@ test_loss, test_accuracy = model.evaluate(test_dataset)
 
 end_time = time.time()  # Fim
 total_time = (end_time - start_time) / 60  # Converter para minutos
-
 # Imprimir o tempo total
 print(f"Tempo total: {total_time:.2f} minutos")
 

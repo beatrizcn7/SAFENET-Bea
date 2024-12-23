@@ -1,58 +1,67 @@
 # ----------------- Bibliotecas ---------------
-import tensorflow as tf # Principal biblioteca de Machine Learnig e Deep Learning. Cria, treina e implementa modelos de resdes neurais.
-from tensorflow.keras import layers, models # API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
-from tensorflow.keras.applications import ResNet50 # Modelo pré-treinado utilizado
-import pandas as pd # Serva para manipulação e análise de dados
-import matplotlib.pyplot as plt # Para criar gráficos de diferentes tipos
-import seaborn as sns # Para criar gráficos mais elaborados
-from sklearn.metrics import confusion_matrix, roc_curve, auc # Usada para calcular a matriz de confusão, e a curva ROC e AUC
-import numpy as np # Útil para operações matemáticas
-import time  # Biblioteca para contar o tempo
-from sklearn.preprocessing import label_binarize # Transforma um array de classes numa matriz binária
+# Importar a principal biblioteca de Machine Learning e Deep Learning.
+# Criar, treinar e implementar modelos de redes neurais.
+import tensorflow as tf
+# Importar a API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
+from tensorflow.keras import layers, models
+# Importar o modelo pré-treinado ResNet50
+from tensorflow.keras.applications import ResNet50
+# Utilizar para manipulação e análse de dados
+import pandas as pd
+# Para criar gráficos de diferentes tipos
+import matplotlib.pyplot as plt
+# Para criar gráficos mais elaborados
+import seaborn as sns
+# Utilizar para calcular a matriz de confusão, e a curva ROC e AUC
+from sklearn.metrics import confusion_matrix, roc_curve, auc
+# Utilizar para operações matemáticas
+import numpy as np
+# Importar a biblioteca para contar o tempo
+import time
+# Transformar um array de classes numa matriz binária
+from sklearn.preprocessing import label_binarize
+
 
 # --------------------- Modelo ------------------
-# Cria uma instância do modelo ResNet50 com pesos pré-treinados do ImageNet
+# Instanciar um modelo base com pesos pré-treinados
 base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
 # Congelar as camadas do modelo base
 for layer in base_model.layers:
     layer.trainable = False
 
-# Aumentar os dados de treino com rotações, refleção, zoom aleatoriamente
-data_augmentation = models.Sequential([
-    layers.RandomFlip("horizontal_and_vertical"), # verticalmente ou horizontalmente
-    layers.RandomRotation(0.2), # até 20%
-    layers.RandomZoom(0.1), # até 10%
-], name="data_augmentation")
+# Criar um novo modelo na parte superior.
+inputs = layers.Input(shape=(224, 224, 3))  # Definir a entrada do modelo com tamanho 224x224 e 3 canais de cor
+x = base_model(inputs, training=False)  # Passar a entrada pela base do modelo (sem treino das camadas base)
+x = layers.GlobalAveragePooling2D()(x)  # Aplicar uma camada de pooling global para reduzir a dimensionalidade
 
-# Criar um novo modelo
-model = models.Sequential([
-    layers.Input(shape=(224, 224, 3)),  # Definir a forma de entrada
-    data_augmentation,  # Adiciona a camada de aumento de dados
-    base_model,
-    layers.Flatten(),
-    layers.Dense(3, activation='softmax')  # As labels vão da 0 à 42 (43 combinações possíveis)
-])
+# Criar uma camada densa com 3 classes (saída da classificação) e função de ativação softmax
+outputs = layers.Dense(3, activation='softmax')(x)
 
-# Compilar o modelo
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
+# Criar o modelo final
+model = models.Model(inputs, outputs)  # Definir o modelo com as entradas e saídas especificadas
+
+# Descongelar algumas camadas para fine-tuning (ajustar a rede para os dados)
+for layer in base_model.layers[-10:]:
+    layer.trainable = True
+
+# Compilar o modelo com o otimizador, função de perda e métricas
+model.compile(optimizer=tf.keras.optimizers.Adam(),
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(),
               metrics=['accuracy'])
 
-# Resumir o modelo
-# model.summary()
-
-# Função para carregar TFRecords
+# Função para carregar e processar os dados dos ficheiros TFRecord
 def parse_tfrecord(example):
-    # Defina o formato do TFRecord
+    # Definir o formato dos dados no TFRecord
     feature_description = {
         'image/encoded': tf.io.FixedLenFeature([], tf.string),
         'image/object/class/label': tf.io.FixedLenFeature([], tf.int64),
     }
     return tf.io.parse_single_example(example, feature_description)
 
+# Função para carregar o dataset a partir de vários ficheiros TFRecord
 def load_dataset(file_paths):
-    # Cria um dataset a partir de múltiplos ficheiros TFRecord
+    # Criar um dataset a partir de múltiplos arquivos TFRecord
     raw_dataset = tf.data.TFRecordDataset(file_paths)
     return raw_dataset.map(parse_tfrecord).map(
         lambda x: (
@@ -81,7 +90,7 @@ history = model.fit(
 
 # Guardar o modelo treinado
 model.save('Tentativa 2 - Material.h5')
-print('Guardado o modelo!')
+print('Modelo guardado')
 
 # Carregar o conjunto de teste
 test_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Teste/*.tfrecord')
@@ -92,6 +101,7 @@ test_loss, test_accuracy = model.evaluate(test_dataset)
 
 end_time = time.time()  # Fim
 total_time = (end_time - start_time) / 60  # Converter para minutos
+
 # Imprimir o tempo total
 print(f"Tempo total: {total_time:.2f} minutos")
 
@@ -99,7 +109,11 @@ print(f"Tempo total: {total_time:.2f} minutos")
 print(f'Teste Loss: {test_loss}')
 print(f'Teste Accuracy: {test_accuracy}')
 
+
 # ------------- Representação de dados ----------
+
+# EXCEL DA LOSS E ACCURACY AO LONGO DAS ÉPOCAS
+
 # Criar um dataframe com os resultados de cada época
 results_df = pd.DataFrame({
     'Epoch': range(1, len(history.history['accuracy']) + 1),
@@ -109,10 +123,12 @@ results_df = pd.DataFrame({
     'Val Accuracy': history.history['val_accuracy']
 })
 
-# Guardar o dataframe de resultados num arquivo Excel
+# Guardar o dataframe de resultados num ficheiro Excel
 results_df.to_excel('Ao longo das Épocas.xlsx', index=False)
 
-print('Excel criado')
+print('Excel da loss e accuracy ao longo das épocas criado')
+
+# GRÁFICO DE LOSS E ACCURACY AO LONGO DAS ÉPOCAS
 
 # Fazer os gráficos de accuracy e loss
 epochs = range(1, len(history.history['accuracy']) + 1)
@@ -148,11 +164,13 @@ plt.tight_layout()
 plt.savefig('Loss e Accuracy.png')  # Guardar os gráficos numa imagem
 plt.show()
 
-print('Gráficos de Accuracy e Loss criados')
+print('Gráficos da loss e accuracy ao longo das épocas criado')
 
-y_true = [] # armazena as classess verdadeiras de cada batch dos dados teste
-y_pred = [] # armazena as previsões feitas pelo modelo
-y_pred_probs = [] # armazena as probabilidades previstas para cada classe
+# EXCEL DAS MÉTRICAS (EXATIDÃO, PRECISÃO, RECUPERAÇÃO E F1)
+
+y_true = [] # armazenar as classess verdadeiras de cada batch dos dados teste
+y_pred = [] # armazenar as previsões feitas pelo modelo
+y_pred_probs = [] # armazenar as probabilidades previstas para cada classe
 
 # Recolher as classes verdadeiras e as previsões
 for images, labels in test_dataset:
@@ -164,6 +182,8 @@ for images, labels in test_dataset:
 # Colocar binário as classes
 y_true_binarized = label_binarize(y_true, classes=range(3))
 
+# Calcular as classes com casos de teste
+classes_with_samples = np.unique(y_true)  # Descobrir automaticamente as classes com casos de teste
 
 # Calcular a matriz de confusão
 cm = confusion_matrix(y_true, y_pred, labels=range(3))
@@ -206,11 +226,16 @@ metrics_df = pd.DataFrame({
 # Salvar o dataframe das métricas num arquivo Excel
 metrics_df.to_excel('Métricas.xlsx', index=False)
 
-print('Métricas calculadas')
+print('Excel das Métricas criados')
 
+# GRÁFICO DAS MÉTRICAS
+
+# Lista de métricas a serem visualizadas
 metrics = ['Accuracy', 'Precision', 'Recall', 'F1 Score']
+# Nomes dos ficheiros onde os gráficos serão salvos
 file_names = ['Accuracy.png', 'Precision.png', 'Recall.png', 'F1 Score.png']
 
+# Loop para gerar um gráfico para cada métrica
 for metric, file_name in zip(metrics, file_names):
     plt.figure(figsize=(8, 5))
     plt.plot(metrics_df['Classe'], metrics_df[metric], marker='o')
@@ -223,9 +248,11 @@ for metric, file_name in zip(metrics, file_names):
     plt.savefig(file_name)  # Guardar gráfico como imagem
     plt.show()
 
-print('Gráficos individuais criados.')
+print('Gráficos das Métricas criados.')
 
-# Fazer o gráfico da matriz de confusão
+# FOTO DA MATRIZ DE CONFUSÃO
+
+# Criar o gráfico da matriz de confusão
 plt.figure(figsize=(12, 10))
 sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=range(3), yticklabels=range(3))
 plt.title('Matriz de Confusão')
@@ -234,25 +261,29 @@ plt.ylabel('Classe Verdadeira')
 plt.savefig('Matriz de Confusão.png')  # Guardar a matriz de confusão como imagem
 plt.show()
 
-print('Matriz de confusão criada')
+print('Foto da Matriz de confusão criada')
 
-# Criar um dataframe a partir da matriz de confusão
+# EXCEL DA MATRIZ DE CONFUSÃO
+
+# Criar um dataframe do pandas a partir da matriz de confusão
 cm_df = pd.DataFrame(cm, index=[f'Verdadeiro {i}' for i in range(3)], columns=[f'Previsto {i}' for i in range(3)])
 
-# Salvar o dataframe num arquivo Excel
+# Salvar o dataframe num ficheiro Excel
 cm_df.to_excel('Matriz de Confusão.xlsx', index=True)
 
-print('Matriz de confusão guardado no Excel')
+print('Excel da Matriz de Confusão criado')
 
-# Função para fazer o gráfico de ROC para as 5 classes
+# GRÁFICO ROC E AUC
+
+# Função para gerar o gráfico de ROC para as classes
 def plot_roc_for_three_classes(classes, file_name):
-    plt.figure(figsize=(20, 5))  # Ajuste para 3 colunas e 1 linha
+    plt.figure(figsize=(15, 5))
 
     for idx, cls in enumerate(classes):
         fpr, tpr, _ = roc_curve(y_true_binarized[:, cls], np.array(y_pred_probs)[:, cls])
         roc_auc = auc(fpr, tpr)
 
-        plt.subplot(1, 5, idx + 1)
+        plt.subplot(1, 3, idx + 1)
         plt.plot(fpr, tpr, color='blue', label=f'Classe {cls} (AUC = {roc_auc:.2f})')
         plt.plot([0, 1], [0, 1], color='grey', linestyle='--')
         plt.xlim([0.0, 1.0])
@@ -266,8 +297,7 @@ def plot_roc_for_three_classes(classes, file_name):
     plt.savefig(file_name)
     plt.show()
 
-# Gerar o gráfico para as 3 classes
-plot_roc_for_three_classes(range(3), 'Material/Tentativa 2/ROC.png')
+# Gerar o gráfico ROC para as 3 classes
+plot_roc_for_three_classes(range(3), 'ROC.png')
 
-print('Gráficos ROC e AUC feitos.')
-
+print('Gráficos ROC e AUC criados.')

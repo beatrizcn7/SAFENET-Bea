@@ -1,8 +1,14 @@
 # ----------------- Bibliotecas ---------------
-import tensorflow as tf # Principal biblioteca de Machine Learnig e Deep Learning. Cria, treina e implementa modelos de resdes neurais.
-from tensorflow.keras import layers, models # API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
-from tensorflow.keras.applications import ResNet50 # Modelo pré-treinado utilizado
-import time  # Biblioteca para contar o tempo
+# Importar a principal biblioteca de Machine Learning e Deep Learning.
+# Criar, treinar e implementar modelos de redes neurais.
+import tensorflow as tf
+# Importar a API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
+from tensorflow.keras import layers, models
+# Importar o modelo pré-treinado ResNet50
+from tensorflow.keras.applications import ResNet50
+# Importar a biblioteca para contar o tempo
+import time
+
 
 # --------------------- Modelo ------------------
 # Instanciar um modelo base com pesos pré-treinados
@@ -13,40 +19,38 @@ for layer in base_model.layers:
     layer.trainable = False
 
 # Criar um novo modelo na parte superior.
-inputs = layers.Input(shape=(224, 224, 3))
-x = base_model(inputs, training=False)
-x = layers.GlobalAveragePooling2D()(x)
+inputs = layers.Input(shape=(224, 224, 3))  # Definir a entrada do modelo com tamanho 224x224 e 3 canais de cor
+x = base_model(inputs, training=False)  # Passar a entrada pela base do modelo (sem treino das camadas base)
+x = layers.GlobalAveragePooling2D()(x)  # Aplicar uma camada de pooling global para reduzir a dimensionalidade
 
-# Camada densa para classificação
-outputs = layers.Dense(3, activation='softmax')(x)  # 3 classes
+# Criar uma camada densa com 3 classes (saída da classificação) e função de ativação softmax
+outputs = layers.Dense(3, activation='softmax')(x)
 
-# Modelo final
-model = models.Model(inputs, outputs)
+# Criar o modelo final
+model = models.Model(inputs, outputs)  # Definir o modelo com as entradas e saídas especificadas
 
-# Agora, vamos descongelar algumas camadas para fine-tuning (ajustar a rede para os seus dados)
-for layer in base_model.layers[-10:]:  # Descongelar as últimas 10 camadas, pode ajustar conforme necessário
-    layer.trainable = True
 
-# Compilar o modelo com o otimizador, função de perda e métricas
-model.compile(optimizer=tf.keras.optimizers.Adam(),
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-              metrics=[tf.keras.metrics.SparseCategoricalAccuracy()])
+# Compilar o modelo
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
 
-# Função para carregar TFRecords
+# Função para carregar e processar os dados dos ficheiros TFRecord
 def parse_tfrecord(example):
-    # Defina o formato do TFRecord
+    # Definir o formato dos dados no TFRecord
     feature_description = {
         'image/encoded': tf.io.FixedLenFeature([], tf.string),
         'image/object/class/label': tf.io.FixedLenFeature([], tf.int64),
     }
     return tf.io.parse_single_example(example, feature_description)
 
+# Função para carregar o dataset a partir de vários ficheiros TFRecord
 def load_dataset(file_paths):
-    # Cria um dataset a partir de múltiplos arquivos TFRecord
+    # Criar um dataset a partir de múltiplos arquivos TFRecord
     raw_dataset = tf.data.TFRecordDataset(file_paths)
     return raw_dataset.map(parse_tfrecord).map(
         lambda x: (
-            tf.image.resize(tf.image.decode_jpeg(x['image/encoded'], channels=3), [224, 224]),  # Ajuste das imagens para 224x224
+            tf.image.resize(tf.image.decode_jpeg(x['image/encoded'], channels=3), [224, 224]),
             x['image/object/class/label']
         )
     )
@@ -78,6 +82,7 @@ test_loss, test_accuracy = model.evaluate(test_dataset)
 
 end_time = time.time()  # Fim
 total_time = (end_time - start_time) / 60  # Converter para minutos
+
 # Imprimir o tempo total
 print(f"Tempo total: {total_time:.2f} minutos")
 
