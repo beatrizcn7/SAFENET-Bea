@@ -30,12 +30,16 @@ base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 2
 for layer in base_model.layers:
     layer.trainable = False
 
-# Cria um novo modelo
-model = models.Sequential([
-    base_model,
-    layers.Flatten(),
-    layers.Dense(3, activation='softmax')
-])
+# Criar um novo modelo na parte superior.
+inputs = layers.Input(shape=(224, 224, 3))  # Definir a entrada do modelo com tamanho 224x224 e 3 canais de cor
+x = base_model(inputs, training=False)  # Passar a entrada pela base do modelo (sem treino das camadas base)
+x = layers.GlobalAveragePooling2D()(x)  # Aplicar uma camada de pooling global para reduzir a dimensionalidade
+
+# Criar uma camada densa com 11 classes (saída da classificação) e função de ativação softmax
+outputs = layers.Dense(11, activation='softmax')(x)
+
+# Criar o modelo final
+model = models.Model(inputs, outputs)  # Definir o modelo com as entradas e saídas especificadas
 
 # Compilar o modelo
 model.compile(optimizer='adam',
@@ -63,8 +67,8 @@ def load_dataset(file_paths):
     )
 
 # Pastas dos ficheiros TFRecords (Treino e Teste)
-train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Treino/*.tfrecord')
-val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Validação/*.tfrecord')
+train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material + Ano + Estrutura/Treino/*.tfrecord')
+val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material + Ano + Estrutura/Validação/*.tfrecord')
 
 # Carregar os ficheiros TFRecords
 train_dataset = load_dataset(train_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
@@ -81,11 +85,11 @@ history = model.fit(
 )
 
 # Guardar o modelo treinado
-model.save('Tentativa 2 - Material.h5')
-print('Modelo guardado')
+model.save('Tentativa 1 - Material + Ano + Estrutura (Do Zero).h5')
+print('Guardado o modelo!')
 
 # Carregar o conjunto de teste
-test_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Teste/*.tfrecord')
+test_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material + Ano + Estrutura/Teste/*.tfrecord')
 test_dataset = load_dataset(test_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 
 # Avaliar o modelo no conjunto de teste
@@ -102,7 +106,7 @@ print(f'Teste Loss: {test_loss}')
 print(f'Teste Accuracy: {test_accuracy}')
 
 
-# ------------- Representação de dados ----------
+# ----------------- Representação dos dados -----------------
 
 # EXCEL DA LOSS E ACCURACY AO LONGO DAS ÉPOCAS
 
@@ -160,9 +164,9 @@ print('Gráficos da loss e accuracy ao longo das épocas criado')
 
 # EXCEL DAS MÉTRICAS (EXATIDÃO, PRECISÃO, RECUPERAÇÃO E F1)
 
-y_true = [] # armazenar as classess verdadeiras de cada batch dos dados teste
-y_pred = [] # armazenar as previsões feitas pelo modelo
-y_pred_probs = [] # armazenar as probabilidades previstas para cada classe
+y_true = [] # armazena as classess verdadeiras de cada batch dos dados teste
+y_pred = [] # armazena as previsões feitas pelo modelo
+y_pred_probs = [] # armazena as probabilidades previstas para cada classe
 
 # Recolher as classes verdadeiras e as previsões
 for images, labels in test_dataset:
@@ -172,13 +176,13 @@ for images, labels in test_dataset:
     y_pred_probs.extend(preds)
 
 # Colocar binário as classes
-y_true_binarized = label_binarize(y_true, classes=range(3))
+y_true_binarized = label_binarize(y_true, classes=range(11))
 
 # Calcular as classes com casos de teste
 classes_with_samples = np.unique(y_true)  # Descobrir automaticamente as classes com casos de teste
 
 # Calcular a matriz de confusão
-cm = confusion_matrix(y_true, y_pred, labels=range(3))
+cm = confusion_matrix(y_true, y_pred, labels=range(11))
 
 # Inicializar as listas para armazenar as métricas (exatidão, precisão, recuperação e F1)
 accuracies, precisions, recalls, f1_scores = [], [], [], []
@@ -192,8 +196,8 @@ for i in range(len(cm)):
 
     # Exatidão
     accuracy = (TP + TN) / (TP + TN + FP + FN)
-    accuracies.append(accuracy)
 
+    accuracies.append(accuracy)
     # Precisão
     precision = TP / (TP + FP) if (TP + FP) > 0 else 0
     precisions.append(precision)
@@ -208,14 +212,14 @@ for i in range(len(cm)):
 
 # Criar um dataframe com as métricas
 metrics_df = pd.DataFrame({
-    'Classe': range(3),
+    'Classe': range(11),
     'Accuracy': accuracies,
     'Precision': precisions,
     'Recall': recalls,
     'F1 Score': f1_scores
 })
 
-# Salvar o dataframe das métricas num arquivo Excel
+# Salvar o dataframe das métricas num ficheiro Excel
 metrics_df.to_excel('Métricas.xlsx', index=False)
 
 print('Excel das Métricas criados')
@@ -227,7 +231,6 @@ metrics = ['Accuracy', 'Precision', 'Recall', 'F1 Score']
 # Nomes dos ficheiros onde os gráficos serão salvos
 file_names = ['Accuracy.png', 'Precision.png', 'Recall.png', 'F1 Score.png']
 
-# Loop para gerar um gráfico para cada métrica
 for metric, file_name in zip(metrics, file_names):
     plt.figure(figsize=(8, 5))
     plt.plot(metrics_df['Classe'], metrics_df[metric], marker='o')
@@ -240,13 +243,13 @@ for metric, file_name in zip(metrics, file_names):
     plt.savefig(file_name)  # Guardar gráfico como imagem
     plt.show()
 
-print('Gráficos das Métricas criados.')
+print('Gráficos individuais criados.')
 
 # FOTO DA MATRIZ DE CONFUSÃO
 
-# Criar o gráfico da matriz de confusão
+# Fazer o gráfico da matriz de confusão
 plt.figure(figsize=(12, 10))
-sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=range(3), yticklabels=range(3))
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=range(11), yticklabels=range(11))
 plt.title('Matriz de Confusão')
 plt.xlabel('Classe Prevista')
 plt.ylabel('Classe Verdadeira')
@@ -257,8 +260,8 @@ print('Foto da Matriz de confusão criada')
 
 # EXCEL DA MATRIZ DE CONFUSÃO
 
-# Criar um dataframe do pandas a partir da matriz de confusão
-cm_df = pd.DataFrame(cm, index=[f'Verdadeiro {i}' for i in range(3)], columns=[f'Previsto {i}' for i in range(3)])
+# Criar um dataframe a partir da matriz de confusão
+cm_df = pd.DataFrame(cm, index=[f'Verdadeiro {i}' for i in range(11)], columns=[f'Previsto {i}' for i in range(11)])
 
 # Salvar o dataframe num ficheiro Excel
 cm_df.to_excel('Matriz de Confusão.xlsx', index=True)
@@ -267,15 +270,16 @@ print('Excel da Matriz de Confusão criado')
 
 # GRÁFICO ROC E AUC
 
-# Função para gerar o gráfico de ROC para as classes
-def plot_roc_for_three_classes(classes, file_name):
-    plt.figure(figsize=(15, 5))
+# Função para fazer o gráfico de ROC para as classes
+def plot_roc_for_eleven_classes(classes, file_name):
+    plt.figure(figsize=(20, 10))  # Ajustar tamanho para 2 linhas
 
     for idx, cls in enumerate(classes):
         fpr, tpr, _ = roc_curve(y_true_binarized[:, cls], np.array(y_pred_probs)[:, cls])
         roc_auc = auc(fpr, tpr)
 
-        plt.subplot(1, 3, idx + 1)
+        # Organizar em 2 linhas: 6 gráficos na primeira linha, 5 na segunda
+        plt.subplot(2, 6, idx + 1)  # Configurar subplot para 2 linhas e 6 colunas (última posição ficará vazia)
         plt.plot(fpr, tpr, color='blue', label=f'Classe {cls} (AUC = {roc_auc:.2f})')
         plt.plot([0, 1], [0, 1], color='grey', linestyle='--')
         plt.xlim([0.0, 1.0])
@@ -285,11 +289,12 @@ def plot_roc_for_three_classes(classes, file_name):
         plt.title(f'ROC Classe {cls}')
         plt.legend(loc="lower right")
 
+    # Ajustar o layout para evitar sobreposição
     plt.tight_layout()
     plt.savefig(file_name)
     plt.show()
 
-# Gerar o gráfico ROC para as 3 classes
-plot_roc_for_three_classes(range(3), 'ROC.png')
+# Gerar o gráfico para as 11 classes
+plot_roc_for_eleven_classes(range(11), 'Material + Ano/ResNet/Tentativa 2/Com Tentativa 2 - Material/ROC.png')
 
-print('Gráficos ROC e AUC criados.')
+print('Gráficos ROC e AUC feitos.')

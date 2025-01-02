@@ -80,6 +80,10 @@ history = model.fit(
     epochs=10
 )
 
+# Guardar o modelo treinado
+model.save('Tentativa 1 - Material.h5')
+print('Modelo guardado')
+
 # Carregar o conjunto de teste
 test_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Teste/*.tfrecord')
 test_dataset = load_dataset(test_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)

@@ -2,15 +2,24 @@
 # Importar a principal biblioteca de Machine Learning e Deep Learning.
 # Criar, treinar e implementar modelos de redes neurais.
 import tensorflow as tf
-from tensorflow.keras import layers, models # API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
-from tensorflow.keras.applications import ResNet50 # Modelo pré-treinado utilizado
-import pandas as pd # Serva para manipulação e análise de dados
-import matplotlib.pyplot as plt # Para criar gráficos de diferentes tipos
-import seaborn as sns # Para criar gráficos mais elaborados
-from sklearn.metrics import confusion_matrix, roc_curve, auc # Usada para calcular a matriz de confusão, e a curva ROC e AUC
-import numpy as np # Útil para operações matemáticas
-import time  # Biblioteca para contar o tempo
-from sklearn.preprocessing import label_binarize # Transforma um array de classes numa matriz binária
+# Importar a API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
+from tensorflow.keras import layers, models
+# Importar o modelo pré-treinado ResNet50
+from tensorflow.keras.applications import ResNet50
+# Utilizar para manipulação e análse de dados
+import pandas as pd
+# Para criar gráficos de diferentes tipos
+import matplotlib.pyplot as plt
+# Para criar gráficos mais elaborados
+import seaborn as sns
+# Utilizar para calcular a matriz de confusão, e a curva ROC e AUC
+from sklearn.metrics import confusion_matrix, roc_curve, auc
+# Utilizar para operações matemáticas
+import numpy as np
+# Importar a biblioteca para contar o tempo
+import time
+# Transformar um array de classes numa matriz binária
+from sklearn.preprocessing import label_binarize
 
 
 # --------------------- Modelo ------------------
@@ -80,8 +89,8 @@ history = model.fit(
 )
 
 # Guardar o modelo treinado
-# model.save('Tentativa 1 - Material + Ano (Do Zero).h5')
-# print('Modelo guardado')
+model.save('Tentativa 2 - Material + Ano (Do Zero).h5')
+print('Guardado o modelo!')
 
 # Carregar o conjunto de teste
 test_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material + Ano/Teste/*.tfrecord')
@@ -115,7 +124,7 @@ results_df = pd.DataFrame({
 })
 
 # Guardar o dataframe de resultados num ficheiro Excel
-results_df.to_excel('Resultados.xlsx', index=False)
+results_df.to_excel('Ao longo das Épocas.xlsx', index=False)
 
 print('Excel da loss e accuracy ao longo das épocas criado')
 
@@ -267,7 +276,7 @@ print('Excel da Matriz de Confusão criado')
 
 # Função para fazer o gráfico de ROC para as classes
 def plot_roc_for_three_classes(classes, file_name):
-    plt.figure(figsize=(20, 5))  # Ajuste para 3 colunas e 1 linha
+    plt.figure(figsize=(20, 5))
 
     for idx, cls in enumerate(classes):
         fpr, tpr, _ = roc_curve(y_true_binarized[:, cls], np.array(y_pred_probs)[:, cls])
@@ -288,6 +297,6 @@ def plot_roc_for_three_classes(classes, file_name):
     plt.show()
 
 # Gerar o gráfico para as 3 classes
-plot_roc_for_three_classes(range(5), 'MROC.png')
+plot_roc_for_three_classes(range(5), 'ROC.png')
 
 print('Gráficos ROC e AUC criados.')

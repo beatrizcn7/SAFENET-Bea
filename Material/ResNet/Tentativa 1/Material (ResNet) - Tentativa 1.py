@@ -29,7 +29,6 @@ outputs = layers.Dense(3, activation='softmax')(x)
 # Criar o modelo final
 model = models.Model(inputs, outputs)  # Definir o modelo com as entradas e saídas especificadas
 
-
 # Compilar o modelo
 model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',

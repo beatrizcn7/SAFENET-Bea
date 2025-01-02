@@ -23,12 +23,11 @@ inputs = layers.Input(shape=(224, 224, 3))  # Definir a entrada do modelo com ta
 x = base_model(inputs, training=False)  # Passar a entrada pela base do modelo (sem treino das camadas base)
 x = layers.GlobalAveragePooling2D()(x)  # Aplicar uma camada de pooling global para reduzir a dimensionalidade
 
-# Criar uma camada densa com 3 classes (saída da classificação) e função de ativação softmax
-outputs = layers.Dense(3, activation='softmax')(x)
+# Criar uma camada densa com 11 classes (saída da classificação) e função de ativação softmax
+outputs = layers.Dense(11, activation='softmax')(x)
 
 # Criar o modelo final
 model = models.Model(inputs, outputs)  # Definir o modelo com as entradas e saídas especificadas
-
 
 # Compilar o modelo
 model.compile(optimizer='adam',
@@ -56,8 +55,8 @@ def load_dataset(file_paths):
     )
 
 # Pastas dos ficheiros TFRecords (Treino e Teste)
-train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Treino/*.tfrecord')
-val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Validação/*.tfrecord')
+train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material + Ano + Estrutura/Treino/*.tfrecord')
+val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material + Ano + Estrutura/Validação/*.tfrecord')
 
 # Carregar os ficheiros TFRecords
 train_dataset = load_dataset(train_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
@@ -74,7 +73,7 @@ history = model.fit(
 )
 
 # Carregar o conjunto de teste
-test_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Teste/*.tfrecord')
+test_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material + Ano + Estrutura/Teste/*.tfrecord')
 test_dataset = load_dataset(test_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 
 # Avaliar o modelo no conjunto de teste
