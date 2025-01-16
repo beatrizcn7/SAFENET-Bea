@@ -295,6 +295,6 @@ def plot_roc_for_three_classes(classes, file_name):
     plt.show()
 
 # Gerar o gráfico para as 3 classes
-plot_roc_for_three_classes(range(5), 'ROC.png')
+plot_roc_for_three_classes(range(5), 'Antes/ROC.png')
 
 print('Gráficos ROC e AUC criados.')

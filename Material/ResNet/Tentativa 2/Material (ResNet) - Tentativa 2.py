@@ -2,16 +2,16 @@
 # Importar a principal biblioteca de Machine Learning e Deep Learning.
 # Criar, treinar e implementar modelos de redes neurais.
 import tensorflow as tf
-# Importar a API de alto nÌvel que facilita a construÁ„o e treino de redes neurais dentro do TensorFlow
+# Importar a API de alto n√≠vel que facilita a constru√ß√£o e treino de redes neurais dentro do TensorFlow
 from tensorflow.keras import layers, models
-# Importar o modelo prÈ-treinado ResNet50
+# Importar o modelo pr√©-treinado ResNet50
 from tensorflow.keras.applications import ResNet50
 # Importar a biblioteca para contar o tempo
 import time
 
 
 # --------------------- Modelo ------------------
-# Instanciar um modelo base com pesos prÈ-treinados
+# Instanciar um modelo base com pesos pr√©-treinados
 base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
 # Congelar as camadas do modelo base
@@ -23,22 +23,22 @@ inputs = layers.Input(shape=(224, 224, 3))  # Definir a entrada do modelo com ta
 x = base_model(inputs, training=False)  # Passar a entrada pela base do modelo (sem treino das camadas base)
 x = layers.GlobalAveragePooling2D()(x)  # Aplicar uma camada de pooling global para reduzir a dimensionalidade
 
-# Criar uma camada densa com 3 classes (saÌda da classificaÁ„o) e funÁ„o de ativaÁ„o softmax
+# Criar uma camada densa com 3 classes (sa√≠da da classifica√ß√£o) e fun√ß√£o de ativa√ß√£o softmax
 outputs = layers.Dense(3, activation='softmax')(x)
 
 # Criar o modelo final
-model = models.Model(inputs, outputs)  # Definir o modelo com as entradas e saÌdas especificadas
+model = models.Model(inputs, outputs)  # Definir o modelo com as entradas e sa√≠das especificadas
 
 # Descongelar algumas camadas para fine-tuning (ajustar a rede para os dados)
 for layer in base_model.layers[-10:]:
     layer.trainable = True
 
-# Compilar o modelo com o otimizador, funÁ„o de perda e mÈtricas
+# Compilar o modelo com o otimizador, fun√ß√£o de perda e m√©tricas
 model.compile(optimizer=tf.keras.optimizers.Adam(),
               loss=tf.keras.losses.SparseCategoricalCrossentropy(),
               metrics=['accuracy'])
 
-# FunÁ„o para carregar e processar os dados dos ficheiros TFRecord
+# Fun√ß√£o para carregar e processar os dados dos ficheiros TFRecord
 def parse_tfrecord(example):
     # Definir o formato dos dados no TFRecord
     feature_description = {
@@ -47,9 +47,9 @@ def parse_tfrecord(example):
     }
     return tf.io.parse_single_example(example, feature_description)
 
-# FunÁ„o para carregar o dataset a partir de v·rios ficheiros TFRecord
+# Fun√ß√£o para carregar o dataset a partir de v√°rios ficheiros TFRecord
 def load_dataset(file_paths):
-    # Criar um dataset a partir de m˙ltiplos arquivos TFRecord
+    # Criar um dataset a partir de m√∫ltiplos arquivos TFRecord
     raw_dataset = tf.data.TFRecordDataset(file_paths)
     return raw_dataset.map(parse_tfrecord).map(
         lambda x: (
@@ -60,13 +60,13 @@ def load_dataset(file_paths):
 
 # Pastas dos ficheiros TFRecords (Treino e Teste)
 train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Treino/*.tfrecord')
-val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/ValidaÁ„o/*.tfrecord')
+val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material/Valida√ß√£o/*.tfrecord')
 
 # Carregar os ficheiros TFRecords
 train_dataset = load_dataset(train_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 val_dataset = load_dataset(val_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
 
-# InÌcio da contagem de tempo
+# In√≠cio da contagem de tempo
 start_time = time.time()
 
 # Treinar o modelo
@@ -89,6 +89,6 @@ total_time = (end_time - start_time) / 60  # Converter para minutos
 # Imprimir o tempo total
 print(f"Tempo total: {total_time:.2f} minutos")
 
-# Imprime os resultados da perda e da exatid„o dos dados teste
+# Imprime os resultados da perda e da exatid√£o dos dados teste
 print(f'Teste Loss: {test_loss}')
 print(f'Teste Accuracy: {test_accuracy}')

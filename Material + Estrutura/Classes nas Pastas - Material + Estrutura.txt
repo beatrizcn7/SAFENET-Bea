@@ -1,0 +1,24 @@
+Pasta: Treino
+Classe 0: 146
+Classe 1: 120
+Classe 2: 153
+Classe 3: 906
+Classe 4: 338
+Classe 5: 3494
+
+Pasta: Validação
+Classe 0: 20
+Classe 1: 13
+Classe 2: 24
+Classe 3: 127
+Classe 4: 41
+Classe 5: 419
+
+Pasta: Teste
+Classe 0: 20
+Classe 1: 10
+Classe 2: 21
+Classe 3: 131
+Classe 4: 42
+Classe 5: 422
+

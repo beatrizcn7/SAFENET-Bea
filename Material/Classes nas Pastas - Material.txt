@@ -12,4 +12,3 @@ Pasta: Teste
 Classe 0: 17
 Classe 1: 16
 Classe 2: 614
-
