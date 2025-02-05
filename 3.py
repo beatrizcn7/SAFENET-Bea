@@ -1,300 +1,330 @@
-# ----------------- Bibliotecas ---------------
-# Importar a principal biblioteca de Machine Learning e Deep Learning.
-# Criar, treinar e implementar modelos de redes neurais.
-import tensorflow as tf
-# Importar a API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
-from tensorflow.keras import layers, models
-# Importar o modelo pré-treinado ResNet50
-from tensorflow.keras.applications import ResNet50
-# Utilizar para manipulação e análse de dados
-import pandas as pd
-# Para criar gráficos de diferentes tipos
+# Importa a biblioteca OSMnx, usada para obter e analisar dados geográficos de OpenStreetMap.
+import osmnx as ox
+# Importa o módulo pyplot do Matplotlib, que é utilizado para criar gráficos e visualizar dados.
 import matplotlib.pyplot as plt
-# Para criar gráficos mais elaborados
-import seaborn as sns
-# Utilizar para calcular a matriz de confusão, e a curva ROC e AUC
-from sklearn.metrics import confusion_matrix, roc_curve, auc
-# Utilizar para operações matemáticas
+# Importa classes da biblioteca Shapely que permitem trabalhar com geometrias espaciais, como pontos, linhas e coleções de formas geométricas.
+from shapely.geometry import Point, LineString, MultiLineString, GeometryCollection
+# Importa funções da Shapely para operações geométricas avançadas, como encontrar os pontos mais próximos, dividir geometrias e unir várias formas geométricas numa só.
+from shapely.ops import nearest_points, split, unary_union
+# Importa a biblioteca Pandas, usada para manipular e analisar dados em tabelas, como ficheiros CSV ou bases de dados.
+import pandas as pd
+# Importa a biblioteca Math, que fornece funções matemáticas, como cálculos trigonométricos, exponenciais e logaritmos.
+import math
+# Importa a biblioteca Requests, usada para fazer pedidos HTTP, como aceder a dados da internet.
+import requests
+# Importa a biblioteca NumPy, que permite realizar cálculos matemáticos avançados e operações eficientes com arrays numéricos.
 import numpy as np
-# Importar a biblioteca para contar o tempo
-import time
-# Transformar um array de classes numa matriz binária
-from sklearn.preprocessing import label_binarize
+
+# Define the coordinates for the point of interest
+point_coordinates = (41.181221, -8.593758)
+point_coordinates = (40.646458, -8.596817)
+# Aveiro: 40.646458, -8.596817
+# Porto:  41.1713908, -8.59774607
+
+dist = 400
+
+# Load the bridge geometries by specifying geographic coordinates (latitude and longitude)
+bridge_gdf = ox.features.features_from_point(point_coordinates, tags={'bridge': True, 'highway': '*'}, dist=dist)
+
+# Calculate midpoints of each bridge geometry
+bridge_midpoints = []
+
+for geom in bridge_gdf['geometry']:
+    if geom.geom_type == 'LineString':
+        bridge_midpoints.append(geom.centroid)
+    elif geom.geom_type == 'MultiLineString':
+        for line in geom:
+            bridge_midpoints.append(line.centroid)
+    elif geom.geom_type == 'MultiPoint':
+        for point in geom:
+            bridge_midpoints.append(point)
+
+# Calculate distances of midpoints to the point of interest
+distances = [point.distance(Point(point_coordinates[1], point_coordinates[0])) for point in bridge_midpoints]
+
+# Create a DataFrame to store distances (optional)
+distances_df = pd.DataFrame({'Distance to Green Point (m)': distances})
+
+# Find the index of the closest midpoint
+closest_index = distances.index(min(distances))
+closest_midpoint = bridge_midpoints[closest_index]
+
+# Plot the original graph
+G = ox.graph_from_point(point_coordinates, dist=dist, network_type='drive')
+
+# Convert graph edges to GeoDataFrame for easier geometric operations
+edges_gdf = ox.graph_to_gdfs(G, nodes=False)
+
+# Define the closest edge LineString
+closest_edge = None
+min_distance = float('inf')  # Initialize with a large value
+for u, v, k, data in G.edges(keys=True, data=True):
+    geometry = data.get('geometry')
+    if geometry is None:
+        # If the edge has no geometry, calculate the LineString from node coordinates
+        edge_line = LineString([(G.nodes[u]['x'], G.nodes[u]['y']), (G.nodes[v]['x'], G.nodes[v]['y'])])
+    else:
+        # Otherwise, use the edge geometry
+        edge_line = geometry
+
+    # Calculate the closest point on the edge to the midpoint
+    closest_point_on_edge = nearest_points(edge_line, closest_midpoint)[0]
+
+    # Calculate the distance between the closest point on the edge and the midpoint
+    distance_to_edge = closest_point_on_edge.distance(closest_midpoint)
+
+    # Update the closest edge if this edge has a shorter distance
+    if distance_to_edge < min_distance:
+        min_distance = distance_to_edge
+        closest_edge = (u, v, k)
+
+# Check for intersections with other road edges
+intersections = []
+closest_edge_line = LineString([(G.nodes[closest_edge[0]]['x'], G.nodes[closest_edge[0]]['y']),
+                                (G.nodes[closest_edge[1]]['x'], G.nodes[closest_edge[1]]['y'])])
+for idx, row in edges_gdf.iterrows():
+    edge_line = row['geometry']
+    if edge_line.intersects(closest_edge_line):
+        intersections.append(edge_line.intersection(closest_edge_line))
+
+# Plot the original graph
+fig, ax = ox.plot_graph(G, edge_color='grey', edge_linewidth=0.5, show=False, node_size=0)
+
+# Plot the bridge geometries, midpoints, and point of interest
+bridge_gdf.plot(ax=ax, color='blue', alpha=0.5, label='Bridge Geometries')  # Plot bridge geometries
+ax.plot(point_coordinates[1], point_coordinates[0], 'go', markersize=10, label='Point of Interest')  # Green dot for POI
+
+# Plot midpoints in blue, increased size for better visibility
+for midpoint in bridge_midpoints:
+    ax.plot(midpoint.x, midpoint.y, 'bo', markersize=5)  # Blue dot for midpoint
+
+ax.plot(closest_midpoint.x, closest_midpoint.y, 'yo', markersize=5,
+        label='Closest Midpoint')  # Yellow dot for closest midpoint
+
+# Plot intersections with the closest edge
+for intersection in intersections:
+    if isinstance(intersection, LineString):
+        x, y = intersection.xy
+        ax.plot(x, y, color='orange', linewidth=5, label='Intersections')
+
+# Get coordinates of the closest edge endpoints
+start_point = (G.nodes[closest_edge[0]]['x'], G.nodes[closest_edge[0]]['y'])
+end_point = (G.nodes[closest_edge[1]]['x'], G.nodes[closest_edge[1]]['y'])
+
+# Find the road segment that passes under the bridge and intersects with it
+under_bridge_segment = None
+min_distance_to_bridge = float('inf')
+intersection_point = None
+
+for idx, row in edges_gdf.iterrows():
+    edge_line = row['geometry']
+    if edge_line.intersects(closest_edge_line):
+        intersections = edge_line.intersection(closest_edge_line)
+        if isinstance(intersections, Point):
+            distance_to_bridge = intersections.distance(closest_midpoint)
+            if distance_to_bridge < min_distance_to_bridge:
+                min_distance_to_bridge = distance_to_bridge
+                under_bridge_segment = edge_line
+                intersection_point = intersections
+
+# Plot the road segment passing under the bridge
+if under_bridge_segment:
+    x_coords, y_coords = under_bridge_segment.xy
+    ax.plot(x_coords, y_coords, color='green', linewidth=2,
+            label='Road under Bridge')  # Plotting the road segment in green
+
+    # Print the road segment passing under the bridge
+    print("Road under Bridge:")
+    print(under_bridge_segment)
+
+# Define the center of the circle
+circle_center = (closest_midpoint.x, closest_midpoint.y)
+
+# Define the radius of the circle in degrees (assuming latitude and longitude coordinates)
+radius = 50
+radius_degrees = radius / 111111  # Approximate conversion from meters to degrees
+
+# Create the circle geometry
+circle = Point(circle_center).buffer(radius_degrees)
+
+# Plot the circle
+circle_patch = plt.Circle(circle_center, radius_degrees, color='cyan', fill=False, linestyle='--', label='Circle')
+ax.add_patch(circle_patch)
+
+# Find the intersection points between the circle and the road segment passing under the bridge
+intersection_points = circle.intersection(under_bridge_segment)
+
+# # Plot the road points inside the circle
+# if isinstance(intersection_points, LineString):
+#     for x, y in zip(x_coords, y_coords):
+#         ax.scatter(x, y, color='grey', label='Road Point', s=50, zorder=5)
+# elif isinstance(intersection_points, GeometryCollection):
+#     for geom in intersection_points:
+#         if isinstance(geom, LineString):
+#             for x, y in zip(geom.xy[0], geom.xy[1]):
+#                 ax.scatter(x, y, color='grey', label='Road Point', s=50, zorder=5)
 
 
-# --------------------- Modelo ------------------
-# Instanciar um modelo base com pesos pré-treinados
-base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+# Extract Start and End coordinates from the intersection segment
+if isinstance(intersection_points, LineString):
+    intersection_coords = list(intersection_points.coords)
+    start_point = intersection_coords[0]  # First point
+    end_point = intersection_coords[-1]  # Last point
 
-# Congelar as camadas do modelo base
-for layer in base_model.layers:
-    layer.trainable = False
+    # Print the coordinates of the start and end points
+    print("Start Point:", start_point)
+    print("End Point:", end_point)
 
-# Criar um novo modelo na parte superior.
-inputs = layers.Input(shape=(224, 224, 3))  # Definir a entrada do modelo com tamanho 224x224 e 3 canais de cor
-x = base_model(inputs, training=False)  # Passar a entrada pela base do modelo (sem treino das camadas base)
-x = layers.GlobalAveragePooling2D()(x)  # Aplicar uma camada de pooling global para reduzir a dimensionalidade
+    # Plot the start and end points
+    ax.scatter(start_point[0], start_point[1], color='orange', label='Start Point', s=10, zorder=5)
+    ax.scatter(end_point[0], end_point[1], color='cyan', label='End Point', s=10, zorder=5)
 
-# Criar uma camada densa com 11 classes (saída da classificação) e função de ativação softmax
-outputs = layers.Dense(11, activation='softmax')(x)
+# Create a LineString object representing the original line segment
+line_segment = LineString([start_point, end_point])
 
-# Criar o modelo final
-model = models.Model(inputs, outputs)  # Definir o modelo com as entradas e saídas especificadas
+# Extract x and y coordinates from the original line segment
+x_coords, y_coords = line_segment.xy
 
-# Compilar o modelo
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+# Plot the original line segment
+plt.plot(x_coords, y_coords, color='red', label='Original Line Segment')
 
-# Função para carregar e processar os dados dos ficheiros TFRecord
-def parse_tfrecord(example):
-    # Definir o formato dos dados no TFRecord
-    feature_description = {
-        'image/encoded': tf.io.FixedLenFeature([], tf.string),
-        'image/object/class/label': tf.io.FixedLenFeature([], tf.int64),
+
+def find_intersection_points(center_x, center_y, radius, x1, y1, x2, y2):
+    dx = x2 - x1
+    dy = y2 - y1
+
+    # Calculate the coefficients of the quadratic equation
+    a = dx ** 2 + dy ** 2
+    b = 2 * (dx * (x1 - center_x) + dy * (y1 - center_y))
+    c = (x1 - center_x) ** 2 + (y1 - center_y) ** 2 - radius ** 2
+
+    discriminant = b ** 2 - 4 * a * c
+
+    if discriminant < 0:
+        # No intersection
+        return None
+
+    # Calculate intersection points
+    t1 = (-b + math.sqrt(discriminant)) / (2 * a)
+    t2 = (-b - math.sqrt(discriminant)) / (2 * a)
+
+    start_point_projected = (x1 + t1 * dx, y1 + t1 * dy)
+    end_point_projected = (x1 + t2 * dx, y1 + t2 * dy)
+
+    return start_point_projected, end_point_projected
+
+
+def plot_intersection_points(ax, center_x, center_y, radius, x1, y1, x2, y2, intersection_points):
+    # Plot line segment
+    ax.plot([x1, x2], [y1, y2], color='red', label='Segment')
+
+    # Plot intersection points if they exist
+    if intersection_points:
+        ax.plot(intersection_points[0][0], intersection_points[0][1], 'ro',
+                label='Start point projected')  # 'ro' for red circles
+        ax.plot(intersection_points[1][0], intersection_points[1][1], 'ro',
+                label='End point projected')  # 'ro' for red circles
+
+
+# Create the existing plot
+# fig, ax = plt.subplots()
+
+# Call the function to plot segment and intersection points
+intersection_points = find_intersection_points(circle_center[0], circle_center[1], radius_degrees, start_point[0],
+                                               start_point[1], end_point[0], end_point[1])
+plot_intersection_points(ax, circle_center[0], circle_center[1], radius_degrees, start_point[0], start_point[1],
+                         end_point[0], end_point[1], intersection_points)
+
+start_point_projected = intersection_points[0]
+end_point_projected = intersection_points[1]
+
+# Add labels and title
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Latitude')
+ax.set_title('Streets')
+
+# Set axis limits and aspect ratio
+# ax.autoscale()
+ax.set_aspect('equal', adjustable='datalim')
+
+# Show the legend
+ax.legend()
+
+# Show the plot
+plt.grid(True)
+plt.show()
+
+
+# %%
+
+def download_street_view_image(location, heading, pitch, fov, api_key, file_path):
+    """
+    Download a Street View image given the location and parameters.
+
+    :param location: Tuple containing latitude and longitude coordinates, e.g., (latitude, longitude)
+    :param heading: Compass heading indicating the orientation of the camera.
+    :param pitch: The up or down angle of the camera.
+    :param fov: The field of view of the camera.
+    :param api_key: Your Google Cloud Platform API key.
+    :param file_path: File path where the downloaded image will be saved.
+    """
+
+    base_url = "https://maps.googleapis.com/maps/api/streetview"
+
+    parameters = {
+        "size": "600x400",
+        "location": f"{location[0]},{location[1]}",
+        "heading": heading,
+        "pitch": pitch,
+        "fov": fov,
+        "key": api_key
     }
-    return tf.io.parse_single_example(example, feature_description)
 
-# Função para carregar o dataset a partir de vários ficheiros TFRecord
-def load_dataset(file_paths):
-    # Criar um dataset a partir de múltiplos arquivos TFRecord
-    raw_dataset = tf.data.TFRecordDataset(file_paths)
-    return raw_dataset.map(parse_tfrecord).map(
-        lambda x: (
-            tf.image.resize(tf.image.decode_jpeg(x['image/encoded'], channels=3), [224, 224]),
-            x['image/object/class/label']
-        )
-    )
+    response = requests.get(base_url, params=parameters)
 
-# Pastas dos ficheiros TFRecords (Treino e Teste)
-train_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material + Ano + Estrutura/Treino/*.tfrecord')
-val_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material + Ano + Estrutura/Validação/*.tfrecord')
-
-# Carregar os ficheiros TFRecords
-train_dataset = load_dataset(train_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
-val_dataset = load_dataset(val_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
-
-# Início da contagem de tempo
-start_time = time.time()
-
-# Treinar o modelo
-history = model.fit(
-    train_dataset,
-    validation_data=val_dataset,
-    epochs=10
-)
-
-# Guardar o modelo treinado
-model.save('Tentativa 1 - Material + Ano + Estrutura (Do Zero).h5')
-print('Guardado o modelo!')
-
-# Carregar o conjunto de teste
-test_tfrecords = tf.io.gfile.glob('Pasta Final TFRecord - Material + Ano + Estrutura/Teste/*.tfrecord')
-test_dataset = load_dataset(test_tfrecords).batch(32).prefetch(tf.data.AUTOTUNE)
-
-# Avaliar o modelo no conjunto de teste
-test_loss, test_accuracy = model.evaluate(test_dataset)
-
-end_time = time.time()  # Fim
-total_time = (end_time - start_time) / 60  # Converter para minutos
-
-# Imprimir o tempo total
-print(f"Tempo total: {total_time:.2f} minutos")
-
-# Imprime os resultados da perda e da exatidão dos dados teste
-print(f'Teste Loss: {test_loss}')
-print(f'Teste Accuracy: {test_accuracy}')
+    if response.status_code == 200:
+        with open(file_path, 'wb') as f:
+            f.write(response.content)
+        print(f"Image downloaded successfully at: {file_path}")
+    else:
+        print(f"Failed to download image. Status code: {response.status_code}")
 
 
-# ----------------- Representação dos dados -----------------
+pitch = 0  # Pitch (in degrees)
+fov = 200  # Field of view (in degrees)
+api_key = "xxxxx"  # Replace with your own API key
 
-# EXCEL DA LOSS E ACCURACY AO LONGO DAS ÉPOCAS
+# Define the location (yellow point coordinates)
+yellow_point_coordinates = (closest_midpoint.y, closest_midpoint.x)  # Latitude and longitude coordinates
 
-# Criar um dataframe com os resultados de cada época
-results_df = pd.DataFrame({
-    'Epoch': range(1, len(history.history['accuracy']) + 1),
-    'Loss': history.history['loss'],
-    'Accuracy': history.history['accuracy'],
-    'Val Loss': history.history['val_loss'],
-    'Val Accuracy': history.history['val_accuracy']
-})
+# Calculate the heading towards the yellow point from the start and end points
+delta_x_yellow_start = yellow_point_coordinates[0] - start_point_projected[
+    0]  # Corrected to use longitude (x-coordinate)
+delta_y_yellow_start = yellow_point_coordinates[1] - start_point_projected[
+    1]  # Corrected to use latitude (y-coordinate)
+heading_yellow_start = (math.degrees(math.atan2(delta_y_yellow_start, delta_x_yellow_start))) % 360
 
-# Guardar o dataframe de resultados num ficheiro Excel
-results_df.to_excel('Ao longo das Épocas.xlsx', index=False)
+delta_x_yellow_end = yellow_point_coordinates[0] - end_point_projected[0]  # Corrected to use longitude (x-coordinate)
+delta_y_yellow_end = yellow_point_coordinates[1] - end_point_projected[1]  # Corrected to use latitude (y-coordinate)
+heading_yellow_end = (math.degrees(math.atan2(delta_y_yellow_end, delta_x_yellow_end))) % 360
 
-print('Excel da loss e accuracy ao longo das épocas criado')
+# Define file paths for the two images
+file_path_start = "./street_view_image_start.jpg"
+file_path_end = "./street_view_image_end.jpg"
 
-# GRÁFICO DE LOSS E ACCURACY AO LONGO DAS ÉPOCAS
+# Check if the heading angles are opposite to the direction of the yellow point
+print("Heading from start point to yellow point:", heading_yellow_start)
+print("Heading from end point to yellow point:", heading_yellow_end)
+print("Absolute difference between headings:", abs(heading_yellow_start - heading_yellow_end))
 
-# Fazer os gráficos de accuracy e loss
-epochs = range(1, len(history.history['accuracy']) + 1)
+# Check if the absolute difference between headings is less than 180 degrees
+# if abs(heading_yellow_start - heading_yellow_end) < 180:
+# print("Heading adjustment needed.")
+# heading_yellow_start = (heading_yellow_start + 180) % 360     # Add 180 degrees to one of the headings
+# print("Adjusted heading from start point to yellow point:", heading_yellow_start)
 
-# Identificar a melhor epoch
-best_epoch_acc = epochs[history.history['val_accuracy'].index(max(history.history['val_accuracy']))]
-best_epoch_loss = epochs[history.history['val_loss'].index(min(history.history['val_loss']))]
-
-plt.figure(figsize=(12, 5))
-
-# Gráfico 1: Accuracy ao longo das épocas
-plt.subplot(1, 2, 1)
-plt.plot(epochs, history.history['accuracy'], label='Accuracy de Treino', marker='o')
-plt.plot(epochs, history.history['val_accuracy'], label='Accuracy de Validação', marker='o')
-plt.axvline(x=best_epoch_acc, color='r', linestyle='--', label=f'Melhor Epoch {best_epoch_acc}')
-plt.title('Accuracy ao longo dos Epochs')
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.legend()
-
-# Gráfico 2: Loss ao longo das épocas
-plt.subplot(1, 2, 2)
-plt.plot(epochs, history.history['loss'], label='Loss de Treino', marker='o')
-plt.plot(epochs, history.history['val_loss'], label='Loss de Validação', marker='o')
-plt.axvline(x=best_epoch_loss, color='r', linestyle='--', label=f'Melhor Epoch {best_epoch_loss}')
-plt.title('Loss ao longo dos Epochs')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
-
-# Ajustar layout e mostrar os gráficos
-plt.tight_layout()
-plt.savefig('Loss e Accuracy.png')  # Guardar os gráficos numa imagem
-plt.show()
-
-print('Gráficos da loss e accuracy ao longo das épocas criado')
-
-# EXCEL DAS MÉTRICAS (EXATIDÃO, PRECISÃO, RECUPERAÇÃO E F1)
-
-y_true = [] # armazena as classess verdadeiras de cada batch dos dados teste
-y_pred = [] # armazena as previsões feitas pelo modelo
-y_pred_probs = [] # armazena as probabilidades previstas para cada classe
-
-# Recolher as classes verdadeiras e as previsões
-for images, labels in test_dataset:
-    preds = model.predict(images)
-    y_true.extend(labels.numpy())
-    y_pred.extend(np.argmax(preds, axis=1))
-    y_pred_probs.extend(preds)
-
-# Colocar binário as classes
-y_true_binarized = label_binarize(y_true, classes=range(11))
-
-# Calcular as classes com casos de teste
-classes_with_samples = np.unique(y_true)  # Descobrir automaticamente as classes com casos de teste
-
-# Calcular a matriz de confusão
-cm = confusion_matrix(y_true, y_pred, labels=range(11))
-
-# Inicializar as listas para armazenar as métricas (exatidão, precisão, recuperação e F1)
-accuracies, precisions, recalls, f1_scores = [], [], [], []
-
-# Calcular as métricas para cada label
-for i in range(len(cm)):
-    TP = cm[i, i]
-    FP = np.sum(cm[:, i]) - TP
-    FN = np.sum(cm[i, :]) - TP
-    TN = np.sum(cm) - (TP + FP + FN)
-
-    # Exatidão
-    accuracy = (TP + TN) / (TP + TN + FP + FN)
-
-    accuracies.append(accuracy)
-    # Precisão
-    precision = TP / (TP + FP) if (TP + FP) > 0 else 0
-    precisions.append(precision)
-
-    # Recuperação
-    recall = TP / (TP + FN) if (TP + FN) > 0 else 0
-    recalls.append(recall)
-
-    # F1
-    f1 = 2 * ((precision * recall) / (precision + recall)) if (precision + recall) > 0 else 0
-    f1_scores.append(f1)
-
-# Criar um dataframe com as métricas
-metrics_df = pd.DataFrame({
-    'Classe': range(11),
-    'Accuracy': accuracies,
-    'Precision': precisions,
-    'Recall': recalls,
-    'F1 Score': f1_scores
-})
-
-# Salvar o dataframe das métricas num ficheiro Excel
-metrics_df.to_excel('Métricas.xlsx', index=False)
-
-print('Excel das Métricas criados')
-
-# GRÁFICO DAS MÉTRICAS
-
-# Lista de métricas a serem visualizadas
-metrics = ['Accuracy', 'Precision', 'Recall', 'F1 Score']
-# Nomes dos ficheiros onde os gráficos serão salvos
-file_names = ['Accuracy.png', 'Precision.png', 'Recall.png', 'F1 Score.png']
-
-for metric, file_name in zip(metrics, file_names):
-    plt.figure(figsize=(8, 5))
-    plt.plot(metrics_df['Classe'], metrics_df[metric], marker='o')
-    plt.title(f'{metric} por Classe')
-    plt.xlabel('Classe')
-    plt.ylabel(metric)
-    plt.xticks(metrics_df['Classe'])  # Mostrar todas as labels no eixo x
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig(file_name)  # Guardar gráfico como imagem
-    plt.show()
-
-print('Gráficos individuais criados.')
-
-# FOTO DA MATRIZ DE CONFUSÃO
-
-# Fazer o gráfico da matriz de confusão
-plt.figure(figsize=(12, 10))
-sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=range(11), yticklabels=range(11))
-plt.title('Matriz de Confusão')
-plt.xlabel('Classe Prevista')
-plt.ylabel('Classe Verdadeira')
-plt.savefig('Matriz de Confusão.png')  # Guardar a matriz de confusão como imagem
-plt.show()
-
-print('Foto da Matriz de confusão criada')
-
-# EXCEL DA MATRIZ DE CONFUSÃO
-
-# Criar um dataframe a partir da matriz de confusão
-cm_df = pd.DataFrame(cm, index=[f'Verdadeiro {i}' for i in range(11)], columns=[f'Previsto {i}' for i in range(11)])
-
-# Salvar o dataframe num ficheiro Excel
-cm_df.to_excel('Matriz de Confusão.xlsx', index=True)
-
-print('Excel da Matriz de Confusão criado')
-
-# GRÁFICO ROC E AUC
-
-# Função para fazer o gráfico de ROC para as classes
-def plot_roc_for_eleven_classes(classes, file_name):
-    plt.figure(figsize=(20, 10))  # Ajustar tamanho para 2 linhas
-
-    for idx, cls in enumerate(classes):
-        fpr, tpr, _ = roc_curve(y_true_binarized[:, cls], np.array(y_pred_probs)[:, cls])
-        roc_auc = auc(fpr, tpr)
-
-        # Organizar em 2 linhas: 6 gráficos na primeira linha, 5 na segunda
-        plt.subplot(2, 6, idx + 1)  # Configurar subplot para 2 linhas e 6 colunas (última posição ficará vazia)
-        plt.plot(fpr, tpr, color='blue', label=f'Classe {cls} (AUC = {roc_auc:.2f})')
-        plt.plot([0, 1], [0, 1], color='grey', linestyle='--')
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel('Falso Positivo')
-        plt.ylabel('Verdadeiro Positivo')
-        plt.title(f'ROC Classe {cls}')
-        plt.legend(loc="lower right")
-
-    # Ajustar o layout para evitar sobreposição
-    plt.tight_layout()
-    plt.savefig(file_name)
-    plt.show()
-
-# Gerar o gráfico para as 11 classes
-plot_roc_for_eleven_classes(range(11), 'ROC.png')
-
-print('Gráficos ROC e AUC feitos.')
+# Call the function to download the Street View images
+download_street_view_image((start_point_projected[1], start_point_projected[0]), heading_yellow_start, pitch, fov,
+                           api_key, file_path_start)
+download_street_view_image((end_point_projected[1], end_point_projected[0]), heading_yellow_end, pitch, fov, api_key,
+                           file_path_end)
