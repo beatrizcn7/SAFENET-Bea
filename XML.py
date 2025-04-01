@@ -1,3 +1,9 @@
+# Beatriz Neves, 2 de setembro de 2024
+# Input = Excel Dados e Fotos
+# Output = XML
+# Objetivo = Criar ficheiros XML com a informação do Excel.
+
+
 import os
 import pandas as pd
 import xml.etree.ElementTree as ET
@@ -5,7 +11,7 @@ import xml.etree.ElementTree as ET
 # Caminho para o ficheiro Excel e diretórios
 excel_path = 'Dados.xlsx'
 diretorio_principal = 'Fotos'
-diretorio_xml = 'XML'
+diretorio_xml = 'XML '
 
 # Tenta carregar o Excel
 try:

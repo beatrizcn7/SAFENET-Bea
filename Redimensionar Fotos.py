@@ -1,3 +1,9 @@
+# Beatriz Neves, 13 de setembro de 2024
+# Input = Fotos
+# Output = Fotos Redimensionadas
+# Objetivo = Redimensionar as fotos para 224x224
+
+
 import os
 import tensorflow as tf
 
@@ -6,7 +12,6 @@ def preprocess_image(image_path):
     img = tf.io.read_file(image_path)
     img = tf.image.decode_jpeg(img, channels=3)  # Decodifica a imagem
     img = tf.image.resize(img, [224, 224])  # Redimensiona para 224x224
-    img = img / 255.0  # Normaliza os valores dos pixels para entre 0 e 1
     return img
 
 # Função para salvar a imagem redimensionada

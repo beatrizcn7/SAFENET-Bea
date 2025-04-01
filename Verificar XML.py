@@ -1,3 +1,9 @@
+# Beatriz Neves, 13 de setembro de 2024
+# Input = XML
+# Output = Informação no terminal
+# Objetivo = Verifica se não informação em falta nos ficheiros XML
+
+
 import os
 import xml.etree.ElementTree as ET
 

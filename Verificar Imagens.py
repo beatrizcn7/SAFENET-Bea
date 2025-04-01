@@ -1,3 +1,9 @@
+# Beatriz Neves, 11 de setembro de 2024
+# Input = Fotos
+# Output = Informação no terminal
+# Objetivo = Verifica que não há problema com nenhuma foto
+
+
 from PIL import Image
 import os
 
@@ -14,4 +20,4 @@ for subdir, dirs, files in os.walk(root_dir):
                 img = Image.open(image_path)
                 img.verify()  # Verifica se a imagem está OK
             except (IOError, SyntaxError) as e:
-                print(f'Arquivo corrompido: {image_path}')
+                print(f'Ficheiro corrompido: {image_path}')

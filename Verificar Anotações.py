@@ -1,6 +1,11 @@
+# Beatriz Neves, 16 de setembro de 2024
+# Input = Pasta Final
+# Output = Informação no terminal
+# Objetivo = Verifica que todas os ficheiros XML estão anotados com as fotos
+
+
 import os
 import xml.etree.ElementTree as ET
-
 
 def verificar_anotacoes(pasta_final):
     imagens_sem_anotacao = []
@@ -37,7 +42,7 @@ def verificar_se_anotado(caminho_xml):
             # Se for um arquivo anotado, retorna True
             return True
     except ET.ParseError:
-        # Se houver erro ao parsear o XML, considera que não está anotado
+        # Se houver erro ao ver o XML, considera que não está anotado
         return False
 
     # Se não encontrar a tag <annotation>, o arquivo XML não é considerado anotado
@@ -45,7 +50,7 @@ def verificar_se_anotado(caminho_xml):
 
 
 def main():
-    pasta_final = 'Pasta Final'  # Substitua pelo caminho para a pasta onde você armazenou as imagens e os arquivos XML
+    pasta_final = 'Pasta Final'
 
     imagens_sem_anotacao = verificar_anotacoes(pasta_final)
 
