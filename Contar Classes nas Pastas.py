@@ -1,3 +1,9 @@
+# Beatriz Neves, 15 de outubro de 2024
+# Input = Pasta Final TFRecord - Material + Estrutura
+# Output = Bloco de notas
+# Objetivo = Contar o número de classes por cada pasta
+
+
 import os
 import tensorflow as tf
 

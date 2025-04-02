@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -
+# Beatriz Neves, 10 de janeiro de 2025
+# Input = JSON das pontes da autoestrada
+# Output = Excel Autoestrada
+# Objetivo = Retirar informaÃ§Ã£o de cada ponte da autoestrada
+
 import json
 import pandas as pd
 
@@ -11,10 +17,10 @@ for feature in data:
     osm_id = feature.get('osm_id')  # Pega o osm_id
     fclass = feature.get('fclass')  # Classe da estrada
     name = feature.get('name')  # Nome da estrada
-    ref = feature.get('ref')  # Referência
-    maxspeed = feature.get('maxspeed')  # Velocidade máxima
-    bridge = feature.get('bridge')  # Se é ponte
-    tunnel = feature.get('tunnel')  # Se é túnel
+    ref = feature.get('ref')  # ReferÃªncia
+    maxspeed = feature.get('maxspeed')  # Velocidade mÃ¡xima
+    bridge = feature.get('bridge')  # Se Ã© ponte
+    tunnel = feature.get('tunnel')  # Se Ã© tÃºnel
 
     dados.append({
         "osm_id": osm_id,

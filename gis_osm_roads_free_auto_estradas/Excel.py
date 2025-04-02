@@ -1,3 +1,8 @@
+# Beatriz Neves, 10 de janeiro de 2025
+# Input = Excel das Coordenadas
+# Output = Excel Autoestrada
+# Objetivo = Coloca as cooredenadas de cada ponte no ExceL Autoestrada
+
 import pandas as pd
 import json
 

@@ -1,9 +1,15 @@
+# Beatriz Neves, 17 de setembro de 2024
+# Input = Pasta Final
+# Output = Pasta Final
+# Objetivo = Associar os ficheiros XML às fotos.
+
+
 import os
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 # Caminho da pasta final com os XML e fotos
-pasta_final = "Pasta Final 1"
+pasta_final = "Pasta Final"
 novo_tamanho = (224, 224, 3)  # Largura, altura, profundidade (RGB)
 
 # Função para processar cada arquivo XML

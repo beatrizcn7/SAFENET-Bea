@@ -1,3 +1,9 @@
+# Beatriz Neves, 9 de julho de 2024
+# Input = Excel Dados e Fotos
+# Output = JSON
+# Objetivo = Criar ficheiros JSON com a informação do Excel.
+
+
 import os
 import pandas as pd
 import json
@@ -5,7 +11,7 @@ import json
 # Caminho para o ficheiro Excel e diretórios
 excel_path = 'Dados.xlsx'
 diretorio_principal = 'Fotos'
-diretorio_json = 'JSON 2'
+diretorio_json = 'JSON'
 
 # Tenta carregar o Excel
 try:

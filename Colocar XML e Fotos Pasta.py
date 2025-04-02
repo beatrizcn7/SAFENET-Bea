@@ -1,3 +1,10 @@
+# Beatriz Neves, 17 de setembro de 2024
+# Input = XML e Fotos Normalizadas
+# Output = Pasta Final
+# Objetivo = Junta os ficheiros XML e as fotos todas na mesma pasta para depois ser mais fácil a criação
+# de ficheiros de machine learning
+
+
 import os
 import shutil
 import re
@@ -40,7 +47,7 @@ def organizar_pasta_final(pasta_final):
 def main():
     pasta_imagens = 'Fotos Normalizadas'
     pasta_xml = 'XML'
-    pasta_final = 'Pasta Final 1'
+    pasta_final = 'Pasta Final'
 
     criar_pasta_final(pasta_final)
 

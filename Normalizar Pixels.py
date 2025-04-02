@@ -1,3 +1,9 @@
+# Beatriz Neves, 15 de setembro de 2024
+# Input = Fotos Redimensionadas
+# Output = Fotos Normalizadas
+# Objetivo = Normalizar os pixels de cada foto
+
+
 import os
 import tensorflow as tf
 

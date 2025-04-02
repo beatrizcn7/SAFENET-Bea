@@ -1,3 +1,9 @@
+# Beatriz Neves, 18 de novembro de 2024
+# Input = Pasta Final
+# Output = Pasta Final TFRecord - Material + Ano e Bloco de notas com as classes
+# Objetivo = Converter os ficheiros XML em TFRecord
+
+
 # -*- coding: utf-8 -*-
 import os
 import shutil

@@ -1,3 +1,9 @@
+# Beatriz Neves, 23 de setembro de 2024
+# Input = Pasta Final TFRecord - Material + Estrutura
+# Output = Pasta Final TFRecord - Material + Estrutura (Treino, Validação e Teste)
+# Objetivo = Separarar os ficheiros pelas pastas, com as percentagens 80, 10, 10 respetivamente
+
+
 import os
 import random
 import shutil
