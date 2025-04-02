@@ -1,3 +1,10 @@
+# Beatriz Neves, 18 de dezembro de 2024
+# Input = Pasta Final TFRecord - Material + Ano (Treino, Teste e Validação)
+# Output = Impressão da loss e accuracy no terminal assim como o tempo, e os diversos ficheiros
+# (Accuracy, F1 Score, Loss e Accuracy ao longo das épocas, Matriz de Confusão, Métricas, Precision, Recall, ROC)
+# Objetivo = Obter os resultados da mesma tentativa
+
+
 import tensorflow as tf # Principal biblioteca de Machine Learnig e Deep Learning. Cria, treina e implementa modelos de resdes neurais.
 from tensorflow.keras import layers, models # API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
 from tensorflow.keras.applications import Xception # Modelo pré-treinado utilizado
