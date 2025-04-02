@@ -1,3 +1,10 @@
+# Beatriz Neves, 11 de novembro de 2024
+# Input = Pasta Final TFRecord - Material (Treino, Teste e Validação)
+# Output = Impressão da loss e accuracy no terminal assim como o tempo, e os diversos ficheiros
+# (Accuracy, F1 Score, Loss e Accuracy ao longo das épocas, Matriz de Confusão, Métricas, Precision, Recall, ROC)
+# Objetivo = Obter os resultados do treino da mesma tentativa
+
+
 # ----------------- Bibliotecas ---------------
 # Importar a principal biblioteca de Machine Learning e Deep Learning.
 # Criar, treinar e implementar modelos de redes neurais.
