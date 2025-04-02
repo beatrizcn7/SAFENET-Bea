@@ -1,3 +1,9 @@
+# Beatriz Neves, 30 de dezembro de 2024
+# Input = Pasta Final TFRecord - Material + Ano (Treino, Teste e Validação)
+# Output = Impressão da loss e accuracy no terminal assim como o tempo
+# Objetivo = Treinar um modelo ResNet50 com a informação input
+
+
 # ----------------- Bibliotecas ---------------
 # Importar a principal biblioteca de Machine Learning e Deep Learning.
 # Criar, treinar e implementar modelos de redes neurais.
