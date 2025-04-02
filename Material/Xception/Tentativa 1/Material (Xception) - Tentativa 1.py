@@ -1,3 +1,9 @@
+# Beatriz Neves, 9 de dezembro de 2024
+# Input = Pasta Final TFRecord - Material (Treino, Teste e Validação)
+# Output = Impressão da loss e accuracy no terminal assim como o tempo
+# Objetivo = Treinar um modelo Xception com a informação input
+
+
 # ----------------- Bibliotecas ---------------
 import tensorflow as tf # Principal biblioteca de Machine Learnig e Deep Learning. Cria, treina e implementa modelos de resdes neurais.
 from tensorflow.keras import layers, models # API de alto nível que facilita a construção e treino de redes neurais dentro do TensorFlow
